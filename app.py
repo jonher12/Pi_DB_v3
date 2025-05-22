@@ -8,10 +8,7 @@ SHEET_IDS = {
     "PhD": st.secrets["SHEET_ID_PHD"]
 }
 
-FOLDER_IDS = {
-    "PharmD": "1215Nf6MVzcia-wmhjovvQFRJGVMRHS86",
-    "PhD": "1ODM9hoPtaqiFccz5ljmKzo2ISD1qSTMo"
-}
+DRIVE_LINK_SHEET_ID = st.secrets["DRIVE_LINK_SHEET_ID"]
 
 def load_sheet(sheet_id):
     url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
@@ -39,6 +36,7 @@ else:
     st.sidebar.title("Navegación")
     programa = st.sidebar.radio("Selecciona el programa:", ["PharmD", "PhD"])
     df = load_sheet(SHEET_IDS[programa])
+    df_links = load_sheet(DRIVE_LINK_SHEET_ID)
 
     st.header(f"📚 Base de Datos de Cursos ({programa})")
     codigo = st.selectbox("Seleccione un curso:", sorted(df["Codificación"].dropna().unique()))
@@ -61,7 +59,10 @@ else:
     st.subheader("📎 Archivos disponibles (Drive)")
     st.markdown("Consulta los documentos específicos del curso en su subcarpeta dedicada:")
 
-    # Enlace directo al subfolder del curso dentro de la carpeta compartida
-    folder_id = FOLDER_IDS[programa]
-    full_url = f"https://drive.google.com/drive/folders/{folder_id}?q=name+contains+%27{codigo}%27"
-    st.markdown(f"[📂 Abrir carpeta del curso {codigo}]({full_url})")
+    folder_row = df_links[(df_links["Codificación"] == codigo) & (df_links["Programa"] == programa)]
+    if not folder_row.empty:
+        folder_id = folder_row.iloc[0]["FolderID"]
+        subfolder_url = f"https://drive.google.com/drive/folders/{folder_id}"
+        st.markdown(f"[📂 Abrir carpeta del curso {codigo}]({subfolder_url})")
+    else:
+        st.warning("⚠️ No se encontró el enlace directo para este curso.")
