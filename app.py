@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import urllib.request
 
 # 🟢 ESTO DEBE SER LA PRIMERA INSTRUCCIÓN STREAMLIT
 st.set_page_config(page_title="📘 Pi DB v3", layout="wide")
@@ -18,8 +19,18 @@ FOLDER_LINKS = {
 DRIVE_LINK_SHEET_ID = st.secrets["DRIVE_LINK_SHEET_ID"].strip()
 
 def load_sheet(sheet_id):
+    sheet_id = sheet_id.strip()
     url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
-    return pd.read_csv(url)
+    st.write("📎 URL generada:", url)  # Debug temporal
+    try:
+        response = urllib.request.urlopen(url)
+        if response.status != 200:
+            st.error(f"❌ No se pudo acceder al Google Sheet. Código: {response.status}")
+            return pd.DataFrame()
+        return pd.read_csv(url)
+    except Exception as e:
+        st.error(f"❌ Error al intentar leer Google Sheet: {e}")
+        return pd.DataFrame()
 
 # ---------- LOGIN ----------
 st.title("📘 Bienvenido a Pi DB v3")
@@ -43,6 +54,9 @@ else:
     programa = st.sidebar.radio("Selecciona el programa:", ["PharmD", "PhD"])
     df = load_sheet(SHEET_IDS[programa])
     df_links = load_sheet(DRIVE_LINK_SHEET_ID)
+
+    if df.empty or df_links.empty:
+        st.stop()
 
     st.header(f"📚 Base de Datos de Cursos ({programa})")
     codigo = st.selectbox("Seleccione un curso:", sorted(df["Codificación"].dropna().unique()))
