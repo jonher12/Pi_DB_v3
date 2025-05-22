@@ -56,11 +56,38 @@ else:
     if df.empty or df_links.empty:
         st.stop()
 
+    # FILTROS EN LA BARRA LATERAL
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### Filtros de búsqueda")
+
+    codigos = sorted(df["Codificación"].dropna().unique())
+    cod_sel = st.sidebar.selectbox("Filtrar por codificación:", [""] + codigos)
+
+    titulos = df["TítuloCompletoEspañol"].dropna().unique()
+    tit_sel = st.sidebar.selectbox("Filtrar por título del curso:", [""] + sorted(titulos))
+
+    palabra_clave = st.sidebar.text_input("Filtrar por palabra clave:")
+
+    # APLICAR FILTROS
+    df_filtrado = df.copy()
+    if cod_sel:
+        df_filtrado = df_filtrado[df_filtrado["Codificación"] == cod_sel]
+    if tit_sel:
+        df_filtrado = df_filtrado[df_filtrado["TítuloCompletoEspañol"] == tit_sel]
+    if palabra_clave:
+        df_filtrado = df_filtrado[
+            df_filtrado.apply(lambda row: palabra_clave.lower() in str(row).lower(), axis=1)
+        ]
+
     st.title("📘 Bienvenido a Pi DB v3")
     st.header(f"📚 Base de Datos de Cursos ({programa})")
-    codigo = st.selectbox("Seleccione un curso:", sorted(df["Codificación"].dropna().unique()))
 
-    curso = df[df["Codificación"] == codigo].iloc[0]
+    if df_filtrado.empty:
+        st.warning("No se encontraron cursos que coincidan con los filtros seleccionados.")
+        st.stop()
+
+    codigo = st.selectbox("Seleccione un curso:", sorted(df_filtrado["Codificación"].dropna().unique()))
+    curso = df_filtrado[df_filtrado["Codificación"] == codigo].iloc[0]
 
     st.markdown(f"""
     **Codificación:** {curso['Codificación']} &nbsp;&nbsp;&nbsp; **Estado:** {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}  
