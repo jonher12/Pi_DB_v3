@@ -21,7 +21,6 @@ DRIVE_LINK_SHEET_ID = st.secrets["DRIVE_LINK_SHEET_ID"].strip()
 def load_sheet(sheet_id):
     sheet_id = sheet_id.strip()
     url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
-    st.write("📎 URL generada:", url)  # Debug temporal
     try:
         response = urllib.request.urlopen(url)
         if response.status != 200:
@@ -33,12 +32,11 @@ def load_sheet(sheet_id):
         return pd.DataFrame()
 
 # ---------- LOGIN ----------
-st.title("📘 Bienvenido a Pi DB v3")
-
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
+    st.title("📘 Bienvenido a Pi DB v3")
     with st.form("login"):
         user = st.text_input("Usuario:")
         password = st.text_input("Contraseña:", type="password")
@@ -58,6 +56,7 @@ else:
     if df.empty or df_links.empty:
         st.stop()
 
+    st.title("📘 Bienvenido a Pi DB v3")
     st.header(f"📚 Base de Datos de Cursos ({programa})")
     codigo = st.selectbox("Seleccione un curso:", sorted(df["Codificación"].dropna().unique()))
 
