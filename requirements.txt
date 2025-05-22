@@ -1,5 +1,3 @@
-shiny
-pandas
-matplotlib
-networkx
-plotly
+streamlit>=1.25
+pandas>=1.5
+openpyxl
