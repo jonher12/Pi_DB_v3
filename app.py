@@ -8,6 +8,11 @@ SHEET_IDS = {
     "PhD": st.secrets["SHEET_ID_PHD"]
 }
 
+FOLDER_IDS = {
+    "PharmD": "1215Nf6MVzcia-wmhjovvQFRJGVMRHS86",
+    "PhD": "1ODM9hoPtaqiFccz5ljmKzo2ISD1qSTMo"
+}
+
 def load_sheet(sheet_id):
     url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
     return pd.read_csv(url)
@@ -54,13 +59,9 @@ else:
 
     st.markdown("---")
     st.subheader("📎 Archivos disponibles (Drive)")
-    st.markdown("Consulta los documentos del curso en la carpeta compartida:")
+    st.markdown("Consulta los documentos específicos del curso en su subcarpeta dedicada:")
 
-    folder_links = {
-        "PharmD": st.secrets["FOLDER_LINK_PHARMD"],
-        "PhD": st.secrets["FOLDER_LINK_PHD"]
-    }
-
-    # Link directo a carpeta del curso
-    st.markdown(f"[📂 Abrir carpeta del curso]({folder_links[programa]})")
-    st.markdown(f"_Sugerencia: busca el subfolder llamado **{codigo}** en esa carpeta para ver los documentos._")
+    # Enlace directo al subfolder del curso dentro de la carpeta compartida
+    folder_id = FOLDER_IDS[programa]
+    full_url = f"https://drive.google.com/drive/folders/{folder_id}?q=name+contains+%27{codigo}%27"
+    st.markdown(f"[📂 Abrir carpeta del curso {codigo}]({full_url})")
