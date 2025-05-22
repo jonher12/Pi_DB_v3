@@ -8,6 +8,11 @@ SHEET_IDS = {
     "PhD": st.secrets["SHEET_ID_PHD"]
 }
 
+FOLDER_LINKS = {
+    "PharmD": st.secrets["FOLDER_LINK_PHARMD"],
+    "PhD": st.secrets["FOLDER_LINK_PHD"]
+}
+
 DRIVE_LINK_SHEET_ID = st.secrets["DRIVE_LINK_SHEET_ID"]
 
 def load_sheet(sheet_id):
@@ -66,3 +71,6 @@ else:
         st.markdown(f"[📂 Abrir carpeta del curso {codigo}]({subfolder_url})")
     else:
         st.warning("⚠️ No se encontró el enlace directo para este curso.")
+
+    st.markdown("---")
+    st.caption(f"📁 Carpeta general de {programa}: {FOLDER_LINKS[programa]}")
