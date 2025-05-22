@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 
+st.set_page_config(page_title="📘 Pi DB v3", layout="wide")
+
 # ---------- CONFIGURACIÓN ----------
 # IDs de Google Sheets definidos como secretos
 SHEET_IDS = {
