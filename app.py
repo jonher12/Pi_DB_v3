@@ -63,8 +63,8 @@ else:
     codigos = sorted(df["Codificación"].dropna().unique())
     cod_sel = st.sidebar.selectbox("Filtrar por codificación:", [""] + codigos)
 
-    titulos = df["TítuloCompletoEspañol"].dropna().unique()
-    tit_sel = st.sidebar.selectbox("Filtrar por título del curso:", [""] + sorted(titulos))
+    titulos = sorted(df["TítuloCompletoEspañol"].dropna().unique().tolist())
+    tit_sel = st.sidebar.selectbox("Filtrar por título del curso:", [""] + titulos)
 
     palabra_clave = st.sidebar.text_input("Filtrar por palabra clave:")
 
