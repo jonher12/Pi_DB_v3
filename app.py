@@ -22,9 +22,10 @@ if "logged_in" not in st.session_state:
 if not st.session_state.logged_in:
     with st.form("login"):
         user = st.text_input("Usuario:")
-        password = st.text_input("Contraseña:", type="j")
-        if st.form_submit_button("Login"):
-            if user == "admin" and password == "1":
+        password = st.text_input("Contraseña:", type="password")
+        submit = st.form_submit_button("Ingresar")
+        if submit:
+            if user == "j" and password == "1":
                 st.session_state.logged_in = True
                 st.rerun()
             else:
