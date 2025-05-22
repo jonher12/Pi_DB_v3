@@ -60,25 +60,29 @@ else:
     st.sidebar.markdown("---")
     st.sidebar.markdown("### Filtros de búsqueda")
 
-    codigos = sorted(df["Codificación"].dropna().unique().tolist())
-    titulos = sorted(df["TítuloCompletoEspañol"].dropna().unique().tolist())
+    if st.sidebar.button("🔄 Limpiar filtros"):
+        st.session_state["cod_sel"] = ""
+        st.session_state["tit_sel"] = ""
+        st.session_state["palabra_clave"] = ""
 
-    cod_sel = st.sidebar.selectbox("Filtrar por codificación:", [""] + codigos)
-    tit_sel = st.sidebar.selectbox("Filtrar por título del curso:", [""] + titulos)
-    palabra_clave = st.sidebar.text_input("Filtrar por palabra clave:")
+    cod_sel = st.sidebar.text_input("Filtrar por codificación:", key="cod_sel")
+    tit_sel = st.sidebar.text_input("Filtrar por título del curso:", key="tit_sel")
+    palabra_clave = st.sidebar.text_input("Filtrar por palabra clave:", key="palabra_clave")
 
     # APLICAR FILTROS
     df_filtrado = df.copy()
 
-    if cod_sel in df_filtrado["Codificación"].values:
-        df_filtrado = df_filtrado[df_filtrado["Codificación"] == cod_sel]
-    elif cod_sel:
-        df_filtrado = pd.DataFrame()
+    if cod_sel:
+        if cod_sel in df_filtrado["Codificación"].values:
+            df_filtrado = df_filtrado[df_filtrado["Codificación"] == cod_sel]
+        else:
+            df_filtrado = pd.DataFrame()
 
-    if tit_sel in df_filtrado["TítuloCompletoEspañol"].values:
-        df_filtrado = df_filtrado[df_filtrado["TítuloCompletoEspañol"] == tit_sel]
-    elif tit_sel:
-        df_filtrado = pd.DataFrame()
+    if tit_sel:
+        if tit_sel in df_filtrado["TítuloCompletoEspañol"].values:
+            df_filtrado = df_filtrado[df_filtrado["TítuloCompletoEspañol"] == tit_sel]
+        else:
+            df_filtrado = pd.DataFrame()
 
     if palabra_clave:
         df_filtrado = df_filtrado[
