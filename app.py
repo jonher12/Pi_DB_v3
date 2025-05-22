@@ -2,10 +2,10 @@ import streamlit as st
 import pandas as pd
 
 # ---------- CONFIGURACIÓN ----------
-# IDs de Google Sheets (públicos) para cargar los cursos
+# IDs de Google Sheets definidos como secretos
 SHEET_IDS = {
-    "PharmD": "1rsF6qjSOeTiEyLN4hvzPZibMU7krItksChH7jGvTA6M",
-    "PhD": "1R9WtBIahcEXpzQ2uidfCVzpQdOSQ_WIYlGiExa6xSVo"
+    "PharmD": st.secrets["SHEET_ID_PHARMD"],
+    "PhD": st.secrets["SHEET_ID_PHD"]
 }
 
 def load_sheet(sheet_id):
@@ -57,8 +57,8 @@ else:
     st.markdown("Consulta los documentos del curso en la carpeta compartida:")
 
     folder_links = {
-        "PharmD": "https://drive.google.com/drive/folders/1215Nf6MVzcia-wmhjovvQFRJGVMRHS86",
-        "PhD": "https://drive.google.com/drive/folders/1ODM9hoPtaqiFccz5ljmKzo2ISD1qSTMo"
+        "PharmD": st.secrets["FOLDER_LINK_PHARMD"],
+        "PhD": st.secrets["FOLDER_LINK_PHD"]
     }
 
     # Link directo a carpeta del curso
