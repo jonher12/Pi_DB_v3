@@ -41,9 +41,9 @@ if "logged_in" not in st.session_state:
 
 if not st.session_state.logged_in:
     # Encabezado con logos e ícono π
-    col1, col2, col3 = st.columns([.5, 2, 1])
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col1:
-        st.write("")  # Esto crea un espacio en blanco
+        st.write("   ")  # Esto crea un espacio en blanco
         st.image("logo_rcm.png", width=120)
     with col2:
         col_pi, col_title = st.columns([1, 6])
