@@ -63,7 +63,7 @@ else:
     st.sidebar.markdown("### Filtros de búsqueda")
     st.sidebar.caption("ℹ️ Para utilizar un filtro diferente, primero pulsa 'Limpiar filtros'.")
 
-    if st.sidebar.button("🔄 Limpiar todos los filtros") or st.sidebar.button("Limpiar Filtro código") or st.sidebar.button("Limpiar Filtro título"):
+    if st.sidebar.button("🔄 Limpiar todos los filtros"):
         st.session_state["cod_sel"] = ""
         st.session_state["tit_sel"] = ""
         st.session_state["clave_sel"] = ""
@@ -72,14 +72,17 @@ else:
     codigos = sorted(df["Codificación"].dropna().unique())
     titulos = sorted(df["TítuloCompletoEspañol"].dropna().unique())
 
-    st.sidebar.markdown("#### Seleccionar código:")
-    cod_sel = st.sidebar.selectbox("", [""] + codigos, index=0, key="cod_sel")
+    cod_sel = st.sidebar.selectbox("Seleccionar código:", [""] + codigos, index=0, key="cod_sel")
+    if st.sidebar.button("Limpiar Filtro", key="clear_cod"):
+        st.session_state["cod_sel"] = ""
+        st.rerun()
 
-    st.sidebar.markdown("#### Título del curso:")
-    tit_sel = st.sidebar.selectbox("", [""] + titulos, index=0, key="tit_sel")
+    tit_sel = st.sidebar.selectbox("Título del curso:", [""] + titulos, index=0, key="tit_sel")
+    if st.sidebar.button("Limpiar Filtro", key="clear_tit"):
+        st.session_state["tit_sel"] = ""
+        st.rerun()
 
-    st.sidebar.markdown("#### Palabra clave:")
-    clave_sel = st.sidebar.text_input("", value=st.session_state["clave_sel"], key="clave_sel")
+    clave_sel = st.sidebar.text_input("Palabra clave:", value=st.session_state["clave_sel"], key="clave_sel")
 
     df_filtrado = df.copy()
     if st.session_state["cod_sel"]:
