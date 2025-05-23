@@ -47,7 +47,7 @@ if not st.session_state.logged_in:
         st.image("logo_rcm.png", width=120)
     
     with col2:
-        col_pi, col_title = st.columns([1.8, 6])  # Ajuste: mueve contenido levemente a la izquierda
+        col_pi, col_title = st.columns([.8, 6])  # Ajuste: mueve contenido levemente a la izquierda
         with col_pi:
             st.image("pi.png", width=45)
         with col_title:
