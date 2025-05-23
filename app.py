@@ -62,40 +62,37 @@ else:
     codigos = sorted(df["Codificación"].dropna().unique().tolist())
     titulos = sorted(df["TítuloCompletoEspañol"].dropna().unique().tolist())
 
-    if st.sidebar.button("🔄 Limpiar filtros"):
+    if "cod_sel" not in st.session_state:
         st.session_state["cod_sel"] = ""
+    if "tit_sel" not in st.session_state:
         st.session_state["tit_sel"] = ""
+    if "palabra_clave" not in st.session_state:
         st.session_state["palabra_clave"] = ""
+
+    if st.sidebar.button("🔄 Limpiar filtros"):
+        st.session_state.cod_sel = ""
+        st.session_state.tit_sel = ""
+        st.session_state.palabra_clave = ""
         st.rerun()
 
-    cod_sel = st.sidebar.selectbox("Codificación:", [""] + codigos, index=0, key="cod_sel")
-    tit_sel = st.sidebar.selectbox("Título del curso:", [""] + titulos, index=0, key="tit_sel")
     palabra_clave = st.sidebar.text_input("Palabra clave:", key="palabra_clave")
 
     df_filtrado = df.copy()
-    curso = None
-
     if palabra_clave:
-        df_filtrado = df[df.apply(lambda row: palabra_clave.lower() in str(row).lower(), axis=1)]
+        df_filtrado = df_filtrado[df_filtrado.apply(lambda row: palabra_clave.lower() in str(row).lower(), axis=1)]
+
+    cod_sel = st.sidebar.selectbox("Codificación:", [""] + codigos, index=0 if not st.session_state.cod_sel else [""] + codigos.index(st.session_state.cod_sel) + 1, key="cod_sel")
+    tit_sel = st.sidebar.selectbox("Título del curso:", [""] + titulos, index=0 if not st.session_state.tit_sel else [""] + titulos.index(st.session_state.tit_sel) + 1, key="tit_sel")
+
     if cod_sel:
         df_filtrado = df_filtrado[df_filtrado["Codificación"] == cod_sel]
-    if tit_sel:
+    elif tit_sel:
         df_filtrado = df_filtrado[df_filtrado["TítuloCompletoEspañol"] == tit_sel]
 
-    if not df_filtrado.empty:
-        curso = df_filtrado.iloc[0]
-        if not cod_sel:
-            st.session_state["cod_sel"] = curso["Codificación"]
-        if not tit_sel:
-            st.session_state["tit_sel"] = curso["TítuloCompletoEspañol"]
+    curso = df_filtrado.iloc[0] if not df_filtrado.empty else df.iloc[0]
 
     st.title("📘 Bienvenido a Pi DB v3")
     st.header(f"📚 Base de Datos de Cursos ({programa})")
-
-    if curso is None:
-        curso = df.iloc[0]
-        st.session_state["cod_sel"] = curso["Codificación"]
-        st.session_state["tit_sel"] = curso["TítuloCompletoEspañol"]
 
     if curso is None:
         st.warning("No se encontraron cursos que coincidan con los filtros seleccionados.")
