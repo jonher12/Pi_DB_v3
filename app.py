@@ -66,7 +66,6 @@ else:
         st.session_state["cod_sel"] = ""
         st.session_state["tit_sel"] = ""
         st.session_state["palabra_clave"] = ""
-        st.session_state["curso_seleccionado"] = ""
         st.rerun()
 
     cod_sel = st.sidebar.selectbox("Codificación:", [""] + codigos, index=0, key="cod_sel")
@@ -74,23 +73,27 @@ else:
     palabra_clave = st.sidebar.text_input("Palabra clave:", key="palabra_clave")
 
     df_filtrado = df.copy()
+    curso = None
+
     if cod_sel:
-        df_filtrado = df_filtrado[df_filtrado["Codificación"] == cod_sel]
+        curso_match = df[df["Codificación"] == cod_sel]
+        if not curso_match.empty:
+            curso = curso_match.iloc[0]
     elif tit_sel:
-        df_filtrado = df_filtrado[df_filtrado["TítuloCompletoEspañol"] == tit_sel]
+        curso_match = df[df["TítuloCompletoEspañol"] == tit_sel]
+        if not curso_match.empty:
+            curso = curso_match.iloc[0]
     elif palabra_clave:
-        df_filtrado = df_filtrado[
-            df_filtrado.apply(lambda row: palabra_clave.lower() in str(row).lower(), axis=1)
-        ]
+        df_filtrado = df[df.apply(lambda row: palabra_clave.lower() in str(row).lower(), axis=1)]
+        if not df_filtrado.empty:
+            curso = df_filtrado.iloc[0]
 
     st.title("📘 Bienvenido a Pi DB v3")
     st.header(f"📚 Base de Datos de Cursos ({programa})")
 
-    if df_filtrado.empty:
+    if curso is None:
         st.warning("No se encontraron cursos que coincidan con los filtros seleccionados.")
         st.stop()
-
-    curso = df_filtrado.iloc[0]
 
     st.markdown(f"""
     **Codificación:** {curso['Codificación']} &nbsp;&nbsp;&nbsp; **Estado:** {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}  
