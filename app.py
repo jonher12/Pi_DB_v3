@@ -94,15 +94,17 @@ else:
 
     curso = df_filtrado.iloc[0] if not df_filtrado.empty else df.iloc[0]
 
-    col1, col2 = st.columns([2, 3])
+    # Título centrado y columnas laterales
+    st.markdown(f"""
+        <div style='text-align: center;'>
+            <h1 style='font-size: 2.5em; margin-bottom: 0;'>Bienvenido a Pi DB v3</h1>
+            <h2 style='font-size: 1.5em; color: #666;'>📚 Base de Datos de Cursos ({programa})</h2>
+        </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns([1.2, 1.8])
+
     with col1:
-        st.title("📘 Bienvenido a Pi DB v3")
-        st.header(f"📚 Base de Datos de Cursos ({programa})")
-
-        if curso is None:
-            st.warning("No se encontraron cursos que coincidan con los filtros seleccionados.")
-            st.stop()
-
         st.markdown(f"""
         **Codificación:** {curso['Codificación']} &nbsp;&nbsp;&nbsp; **Estado:** {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}  
         **Título (ES):** {curso['TítuloCompletoEspañol']}  
@@ -113,8 +115,10 @@ else:
         """, unsafe_allow_html=True)
 
     with col2:
-        st.text_area("📄 Descripción del Curso", value=curso["Descripción"], height=150)
-        st.text_area("📑 Comentarios", value=curso["Comentarios"], height=150)
+        st.markdown("#### 📄 Descripción del Curso")
+        st.text_area("", value=curso["Descripción"], height=150)
+        st.markdown("#### 📝 Comentarios")
+        st.text_area("", value=curso["Comentarios"], height=150)
 
     st.markdown("---")
     st.subheader("📎 Archivos disponibles (Drive)")
