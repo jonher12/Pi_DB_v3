@@ -79,7 +79,7 @@ if not st.session_state.logged_in:
                     else:
                         st.error("❌ Credenciales incorrectas")
     st.stop()
-st.caption("División de Evaluación de la Efectividad Curricular e Institucional. Todos los derechos reservados. JHA 2025©. Administrador: Jonathan Hernández-Agosto, EdD, GCG.")
+    st.caption("División de Evaluación de la Efectividad Curricular e Institucional. Todos los derechos reservados. JHA 2025©. Administrador: Jonathan Hernández-Agosto, EdD, GCG.")
 
 # App body
 st.sidebar.title("Navegación")
