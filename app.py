@@ -43,12 +43,16 @@ if not st.session_state.logged_in:
     # Encabezado con logos e ícono π
     col1, col2, col3 = st.columns([1, 3, 1])
     with col1:
-        st.image("logo RCM.png", width=100)
+        st.image("logo_rcm.png", width=120)
     with col2:
-        st.markdown("<h1 style='text-align: center; display: flex; align-items: center; justify-content: center;'>"
-                    "<img src='pi.png' width='40' style='margin-right: 10px;'> Bienvenido a Pi DB v3</h1>", unsafe_allow_html=True)
+        st.markdown("""
+            <div style='display: flex; justify-content: center; align-items: center; gap: 15px;'>
+                <img src='pi.png' width='45' style='margin-bottom: 5px;'/>
+                <h1 style='margin: 0;'>Bienvenido a Pi DB v3</h1>
+            </div>
+        """, unsafe_allow_html=True)
     with col3:
-        st.image("Farmacia 110 ESP.png", width=140)
+        st.image("logo_farmacia.png", width=160)
 
     st.markdown("<hr style='margin-top: -10px;'>", unsafe_allow_html=True)
 
@@ -66,7 +70,7 @@ if not st.session_state.logged_in:
                         st.rerun()
                     else:
                         st.error("❌ Credenciales incorrectas")
-            # Nota legal
+
             st.markdown(
                 "<div style='text-align: center; margin-top: 10px;'>"
                 "<small>División de Evaluación de la Efectividad Curricular e Institucional. "
