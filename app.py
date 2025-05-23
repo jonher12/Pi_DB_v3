@@ -40,19 +40,22 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
-    # Encabezado con logos e ícono π
-    col1, col2, col3 = st.columns([.7, 2, 1])
+    # Encabezado con logos e ícono π desplazado a la derecha
+    empty_col, col1, col2, col3 = st.columns([0.5, 1, 2, 1])
+    
     with col1:
         st.image("logo_rcm.png", width=120)
+    
     with col2:
         col_pi, col_title = st.columns([1, 6])
         with col_pi:
             st.image("pi.png", width=45)
         with col_title:
             st.markdown("<h1 style='margin: 0; padding-top: 10px;'>Bienvenido a Pi DB v3</h1>", unsafe_allow_html=True)
+    
     with col3:
         st.image("logo_farmacia.png", width=160)
-
+    
     st.markdown("<hr style='margin-top: -10px;'>", unsafe_allow_html=True)
 
     # Login box centrado
