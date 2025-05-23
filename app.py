@@ -55,26 +55,27 @@ if not st.session_state.logged_in:
     # Login box estilo pop-up
     col_login, _, _ = st.columns([2, 1, 1])
     with col_login:
-    with st.container(border=True):
-        st.markdown("### 🔐 Iniciar sesión")
-        with st.form("login"):
-            user = st.text_input("Usuario:")
-            password = st.text_input("Contraseña:", type="password")
-            if st.form_submit_button("Ingresar"):
-                if user == "j" and password == "1":
-                    st.session_state.logged_in = True
-                    st.rerun()
-                else:
-                    st.error("❌ Credenciales incorrectas")
-        # Aquí colocamos la nota legal centrada
-        st.markdown(
-            "<div style='text-align: center; margin-top: 10px;'>"
-            "<small>División de Evaluación de la Efectividad Curricular e Institucional. "
-            "Todos los derechos reservados. JHA 2025©. Administrador: Jonathan Hernández-Agosto, EdD, GCG.</small>"
-            "</div>",
-            unsafe_allow_html=True
-        )
+        with st.container(border=True):
+            st.markdown("### 🔐 Iniciar sesión")
+            with st.form("login"):
+                user = st.text_input("Usuario:")
+                password = st.text_input("Contraseña:", type="password")
+                if st.form_submit_button("Ingresar"):
+                    if user == "j" and password == "1":
+                        st.session_state.logged_in = True
+                        st.rerun()
+                    else:
+                        st.error("❌ Credenciales incorrectas")
+            # Nota legal
+            st.markdown(
+                "<div style='text-align: center; margin-top: 10px;'>"
+                "<small>División de Evaluación de la Efectividad Curricular e Institucional. "
+                "Todos los derechos reservados. JHA 2025©. Administrador: Jonathan Hernández-Agosto, EdD, GCG.</small>"
+                "</div>",
+                unsafe_allow_html=True
+            )
     st.stop()
+
 # App body
 st.sidebar.title("Navegación")
 programa = st.sidebar.radio("Selecciona el programa:", ["PharmD", "PhD"], key="programa")
