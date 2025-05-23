@@ -66,10 +66,14 @@ if not st.session_state.logged_in:
                     st.rerun()
                 else:
                     st.error("❌ Credenciales incorrectas")
-    st.markdown("<div style='text-align: center; margin-top: 10px;'>"
-                "<small>División de Evaluación de la Efectividad Curricular e Institucional. "
-                "Todos los derechos reservados. JHA 2025©. Administrador: Jonathan Hernández-Agosto, EdD, GCG.</small>"
-                "</div>", unsafe_allow_html=True)
+        # Aquí colocamos la nota legal centrada
+        st.markdown(
+            "<div style='text-align: center; margin-top: 10px;'>"
+            "<small>División de Evaluación de la Efectividad Curricular e Institucional. "
+            "Todos los derechos reservados. JHA 2025©. Administrador: Jonathan Hernández-Agosto, EdD, GCG.</small>"
+            "</div>",
+            unsafe_allow_html=True
+        )
     st.stop()
 # App body
 st.sidebar.title("Navegación")
