@@ -40,29 +40,44 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
-    # Layout centrado estilo pop-up con logos laterales
-    col1, col2, col3 = st.columns([1, 2, 1])
-    
+    # Logos + Título centrado con mayor espaciado
+    col1, col2, col3 = st.columns([1, 3, 1])
     with col1:
-        st.image("logo_rcm.png", width=100)
-    
+        st.image("logo_rcm.png", width=120)
+
     with col2:
-        st.markdown("<h1 style='text-align: center;'>π Bienvenido a Pi DB v3</h1>", unsafe_allow_html=True)
-        st.markdown("---")
+        st.markdown(
+            """
+            <div style='display: flex; justify-content: center; align-items: center; gap: 15px;'>
+                <img src='pi.png' width='45' style='margin-bottom: 5px;'/>
+                <h1 style='margin: 0;'>Bienvenido a Pi DB v3</h1>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        st.markdown("<hr style='border: 1px solid #ccc;'>", unsafe_allow_html=True)
+
+    with col3:
+        st.image("logo_farmacia.png", width=160)
+
+    # Espacio antes del formulario
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Formulario estilo tarjeta centrada
+    login_col = st.columns([1, 2, 1])[1]
+    with login_col:
         with st.container(border=True):
-            with st.form("login"):
+            with st.form("login_form"):
+                st.markdown("### 🔐 Iniciar sesión")
                 user = st.text_input("Usuario:")
                 password = st.text_input("Contraseña:", type="password")
-                if st.form_submit_button("Ingresar"):
+                login_btn = st.form_submit_button("Ingresar")
+                if login_btn:
                     if user == "j" and password == "1":
                         st.session_state.logged_in = True
                         st.rerun()
                     else:
                         st.error("❌ Credenciales incorrectas")
-    
-    with col3:
-        st.image("logo_farmacia.png", width=150)
-
     st.stop()
 
 # ---- APP BODY ----
