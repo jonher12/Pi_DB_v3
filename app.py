@@ -69,7 +69,21 @@ else:
         st.rerun()
 
     cod_sel = st.sidebar.selectbox("Codificación:", [""] + codigos, index=0, key="cod_sel")
+
+    # Sincronizar título si codificación está seleccionada
+    if cod_sel:
+        titulo_match = df[df["Codificación"] == cod_sel]["TítuloCompletoEspañol"]
+        if not titulo_match.empty:
+            st.session_state["tit_sel"] = titulo_match.iloc[0]
+
     tit_sel = st.sidebar.selectbox("Título del curso:", [""] + titulos, index=0, key="tit_sel")
+
+    # Sincronizar codificación si título está seleccionada
+    if tit_sel and not cod_sel:
+        cod_match = df[df["TítuloCompletoEspañol"] == tit_sel]["Codificación"]
+        if not cod_match.empty:
+            st.session_state["cod_sel"] = cod_match.iloc[0]
+
     palabra_clave = st.sidebar.text_input("Palabra clave:", key="palabra_clave")
 
     df_filtrado = df.copy()
