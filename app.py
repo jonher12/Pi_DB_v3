@@ -40,48 +40,37 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
-    # Logos + Título centrado con mayor espaciado
+    # Encabezado con logos e ícono π
     col1, col2, col3 = st.columns([1, 3, 1])
     with col1:
-        st.image("logo_rcm.png", width=120)
-
+        st.image("logo RCM.png", width=100)
     with col2:
-        st.markdown(
-            """
-            <div style='display: flex; justify-content: center; align-items: center; gap: 15px;'>
-                <img src='pi.png' width='45' style='margin-bottom: 5px;'/>
-                <h1 style='margin: 0;'>Bienvenido a Pi DB v3</h1>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-        st.markdown("<hr style='border: 1px solid #ccc;'>", unsafe_allow_html=True)
-
+        st.markdown("<h1 style='text-align: center; display: flex; align-items: center; justify-content: center;'>"
+                    "<img src='pi.png' width='40' style='margin-right: 10px;'> Bienvenido a Pi DB v3</h1>", unsafe_allow_html=True)
     with col3:
-        st.image("logo_farmacia.png", width=160)
+        st.image("Farmacia 110 ESP.png", width=140)
 
-    # Espacio antes del formulario
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<hr style='margin-top: -10px;'>", unsafe_allow_html=True)
 
-    # Formulario estilo tarjeta centrada
-    login_col = st.columns([1, 2, 1])[1]
-    with login_col:
-        with st.container(border=True):
-            with st.form("login_form"):
-                st.markdown("### 🔐 Iniciar sesión")
-                user = st.text_input("Usuario:")
-                password = st.text_input("Contraseña:", type="password")
-                login_btn = st.form_submit_button("Ingresar")
-                if login_btn:
-                    if user == "j" and password == "1":
-                        st.session_state.logged_in = True
-                        st.rerun()
-                    else:
-                        st.error("❌ Credenciales incorrectas")
-    
-    st.caption("División de Evaluación de la Efectividad Curricular e Institucional. Todos los derechos reservados. JHA 2025©. Administrador: Jonathan Hernández-Agosto, EdD, GCG.")
+    # Login box estilo pop-up
+    col_login, _, _ = st.columns([2, 1, 1])
+    with col_login:
+    with st.container(border=True):
+        st.markdown("### 🔐 Iniciar sesión")
+        with st.form("login"):
+            user = st.text_input("Usuario:")
+            password = st.text_input("Contraseña:", type="password")
+            if st.form_submit_button("Ingresar"):
+                if user == "j" and password == "1":
+                    st.session_state.logged_in = True
+                    st.rerun()
+                else:
+                    st.error("❌ Credenciales incorrectas")
+    st.markdown("<div style='text-align: center; margin-top: 10px;'>"
+                "<small>División de Evaluación de la Efectividad Curricular e Institucional. "
+                "Todos los derechos reservados. JHA 2025©. Administrador: Jonathan Hernández-Agosto, EdD, GCG.</small>"
+                "</div>", unsafe_allow_html=True)
     st.stop()
-
 # App body
 st.sidebar.title("Navegación")
 programa = st.sidebar.radio("Selecciona el programa:", ["PharmD", "PhD"], key="programa")
