@@ -23,7 +23,11 @@ def load_sheet(sheet_id):
         if response.status != 200:
             st.error(f"❌ No se pudo acceder al Google Sheet. Código: {response.status}")
             return pd.DataFrame()
-        return pd.read_csv(url)
+        df = pd.read_csv(url)
+        for col in ["Créditos", "HorasContacto", "Año", "Semestre"]:
+            if col in df.columns:
+                df[col] = df[col].fillna(0).astype(int)
+        return df
     except Exception as e:
         st.error(f"❌ Error al intentar leer Google Sheet: {e}")
         return pd.DataFrame()
@@ -36,8 +40,7 @@ if not st.session_state.logged_in:
     with st.form("login"):
         user = st.text_input("Usuario:")
         password = st.text_input("Contraseña:", type="password")
-        submit = st.form_submit_button("Ingresar")
-        if submit:
+        if st.form_submit_button("Ingresar"):
             if user == "j" and password == "1":
                 st.session_state.logged_in = True
                 st.rerun()
@@ -52,48 +55,42 @@ else:
     if df.empty or df_links.empty:
         st.stop()
 
+    for key in ["cod_sel", "tit_sel", "clave_sel"]:
+        if key not in st.session_state:
+            st.session_state[key] = ""
+
     st.sidebar.markdown("---")
     st.sidebar.markdown("### Filtros de búsqueda")
     st.sidebar.caption("ℹ️ Para utilizar un filtro diferente, primero pulsa 'Limpiar filtros'.")
 
-    codigos = sorted(df["Codificación"].dropna().unique().tolist())
-    titulos = sorted(df["TítuloCompletoEspañol"].dropna().unique().tolist())
-
-    if "cod_sel" not in st.session_state:
+    if st.sidebar.button("🔄 Limpiar todos los filtros"):
         st.session_state["cod_sel"] = ""
-    if "tit_sel" not in st.session_state:
         st.session_state["tit_sel"] = ""
-    if "palabra_clave" not in st.session_state:
-        st.session_state["palabra_clave"] = ""
-
-    if st.sidebar.button("🔄 Limpiar filtros"):
-        st.session_state.cod_sel = ""
-        st.session_state.tit_sel = ""
-        st.session_state.palabra_clave = ""
+        st.session_state["clave_sel"] = ""
         st.rerun()
 
-    cod_index = codigos.index(st.session_state.cod_sel) + 1 if st.session_state.cod_sel in codigos else 0
-    tit_index = titulos.index(st.session_state.tit_sel) + 1 if st.session_state.tit_sel in titulos else 0
+    codigos = sorted(df["Codificación"].dropna().unique())
+    titulos = sorted(df["TítuloCompletoEspañol"].dropna().unique())
 
-    cod_sel = st.sidebar.selectbox("Seleccionar código:", [""] + codigos, index=cod_index, key="cod_sel")
+    cod_sel = st.sidebar.selectbox("Seleccionar código:", [""] + codigos, index=0, key="cod_sel")
     if st.sidebar.button("Limpiar Filtro", key="clear_cod"):
-        st.session_state.cod_sel = ""
+        st.session_state["cod_sel"] = ""
         st.rerun()
 
-    tit_sel = st.sidebar.selectbox("Título del curso:", [""] + titulos, index=tit_index, key="tit_sel")
+    tit_sel = st.sidebar.selectbox("Título del curso:", [""] + titulos, index=0, key="tit_sel")
     if st.sidebar.button("Limpiar Filtro", key="clear_tit"):
-        st.session_state.tit_sel = ""
+        st.session_state["tit_sel"] = ""
         st.rerun()
 
-    palabra_clave = st.sidebar.text_input("Palabra clave:", value=st.session_state.palabra_clave, key="palabra_clave")
+    clave_sel = st.sidebar.text_input("Palabra clave:", value=st.session_state["clave_sel"], key="clave_sel")
 
     df_filtrado = df.copy()
-    if cod_sel:
-        df_filtrado = df_filtrado[df_filtrado["Codificación"] == cod_sel]
-    elif tit_sel:
-        df_filtrado = df_filtrado[df_filtrado["TítuloCompletoEspañol"] == tit_sel]
-    elif palabra_clave:
-        df_filtrado = df_filtrado[df_filtrado.apply(lambda row: palabra_clave.lower() in str(row).lower(), axis=1)]
+    if st.session_state["cod_sel"]:
+        df_filtrado = df[df["Codificación"] == st.session_state["cod_sel"]]
+    elif st.session_state["tit_sel"]:
+        df_filtrado = df[df["TítuloCompletoEspañol"] == st.session_state["tit_sel"]]
+    elif st.session_state["clave_sel"]:
+        df_filtrado = df[df.apply(lambda row: st.session_state["clave_sel"].lower() in str(row).lower(), axis=1)]
 
     curso = df_filtrado.iloc[0] if not df_filtrado.empty else df.iloc[0]
 
@@ -113,8 +110,8 @@ else:
     **Fecha Revisión:** {curso['FechaUltimaRevisión']}
     """, unsafe_allow_html=True)
 
-    new_desc = st.text_area("📄 Descripción del Curso", value=curso["Descripción"], height=150)
-    new_comm = st.text_area("📑 Comentarios", value=curso["Comentarios"], height=150)
+    st.text_area("📄 Descripción del Curso", value=curso["Descripción"], height=150)
+    st.text_area("📑 Comentarios", value=curso["Comentarios"], height=150)
 
     st.markdown("---")
     st.subheader("📎 Archivos disponibles (Drive)")
