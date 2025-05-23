@@ -73,14 +73,12 @@ else:
     tit_sel = st.sidebar.selectbox("Título del curso:", [""] + titulos, index=0, key="tit_sel")
     palabra_clave = st.sidebar.text_input("Palabra clave:", key="palabra_clave")
 
-    # APLICAR FILTROS
     df_filtrado = df.copy()
-
-    if cod_sel and cod_sel in df_filtrado["Codificación"].values:
+    if cod_sel:
         df_filtrado = df_filtrado[df_filtrado["Codificación"] == cod_sel]
-    if tit_sel and tit_sel in df_filtrado["TítuloCompletoEspañol"].values:
+    elif tit_sel:
         df_filtrado = df_filtrado[df_filtrado["TítuloCompletoEspañol"] == tit_sel]
-    if palabra_clave:
+    elif palabra_clave:
         df_filtrado = df_filtrado[
             df_filtrado.apply(lambda row: palabra_clave.lower() in str(row).lower(), axis=1)
         ]
@@ -92,19 +90,7 @@ else:
         st.warning("No se encontraron cursos que coincidan con los filtros seleccionados.")
         st.stop()
 
-    codigos_filtrados = sorted(df_filtrado["Codificación"].dropna().unique())
-    curso_sel = st.sidebar.selectbox("Seleccione un curso:", [""] + codigos_filtrados, key="curso_seleccionado")
-
-    if not curso_sel:
-        st.info("Selecciona un curso para ver su información.")
-        st.stop()
-
-    curso_data = df_filtrado[df_filtrado["Codificación"] == curso_sel]
-    if curso_data.empty:
-        st.warning("El curso seleccionado no se encuentra en el subconjunto actual.")
-        st.stop()
-
-    curso = curso_data.iloc[0]
+    curso = df_filtrado.iloc[0]
 
     st.markdown(f"""
     **Codificación:** {curso['Codificación']} &nbsp;&nbsp;&nbsp; **Estado:** {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}  
@@ -122,11 +108,11 @@ else:
     st.subheader("📎 Archivos disponibles (Drive)")
     st.markdown("Consulta los documentos específicos del curso en su subcarpeta dedicada:")
 
-    folder_row = df_links[(df_links["Codificación"] == curso_sel) & (df_links["Programa"] == programa)]
+    folder_row = df_links[(df_links["Codificación"] == curso['Codificación']) & (df_links["Programa"] == programa)]
     if not folder_row.empty:
         folder_id = folder_row.iloc[0]["FolderID"]
         subfolder_url = f"https://drive.google.com/drive/folders/{folder_id}"
-        st.markdown(f"[📂 Abrir carpeta del curso {curso_sel}]({subfolder_url})")
+        st.markdown(f"[📂 Abrir carpeta del curso {curso['Codificación']}]({subfolder_url})")
     else:
         st.warning("⚠️ No se encontró el enlace directo para este curso.")
 
