@@ -168,10 +168,10 @@ with col1:
 
 with col2:
     st.markdown("### 📝 Descripción del Curso")
-    st.text_area("", value=curso["Descripción"], height=220)
+    st.text_area("", value=curso["Descripción"], height=300)
 
     st.markdown("### 🗒️ Comentarios")
-    st.text_area("", value=curso["Comentarios"], height=180)
+    st.text_area("", value=curso["Comentarios"], height=300)
 
 # Pie de página
 st.markdown("---")
