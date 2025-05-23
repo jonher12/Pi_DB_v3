@@ -67,30 +67,19 @@ else:
     st.sidebar.caption("ℹ️ Para utilizar un filtro diferente, primero pulsa 'Limpiar Filtro'.")
 
     if st.sidebar.button("🔄 Limpiar todos los filtros", key="btn_clear_all"):
-        st.session_state.update({"cod_sel": "", "tit_sel": "", "clave_sel": ""})
+        for k in ["cod_sel", "tit_sel", "clave_sel"]:
+            st.session_state[k] = ""
         st.rerun()
 
     codigos = sorted(df["Codificación"].dropna().unique().tolist())
     titulos = sorted(df["TítuloCompletoEspañol"].dropna().unique().tolist())
 
-    # Filtro de código
-    if st.sidebar.button("Limpiar Filtro Código", key="btn_clear_cod"):
-        st.session_state.update({"cod_sel": "", "tit_sel": "", "clave_sel": ""})
-        st.rerun()
     st.sidebar.markdown("#### Seleccionar código:")
     cod_sel = st.sidebar.selectbox("Seleccionar código:", codigos, index=codigos.index(st.session_state["cod_sel"]) if st.session_state["cod_sel"] in codigos else 0, key="cod_sel")
 
-    # Filtro de título
-    if st.sidebar.button("Limpiar Filtro Título", key="btn_clear_tit"):
-        st.session_state.update({"cod_sel": "", "tit_sel": "", "clave_sel": ""})
-        st.rerun()
     st.sidebar.markdown("#### Título del curso:")
     tit_sel = st.sidebar.selectbox("Título del curso:", titulos, index=titulos.index(st.session_state["tit_sel"]) if st.session_state["tit_sel"] in titulos else 0, key="tit_sel")
 
-    # Filtro de palabra clave
-    if st.sidebar.button("Limpiar Filtro Palabra", key="btn_clear_kw"):
-        st.session_state.update({"cod_sel": "", "tit_sel": "", "clave_sel": ""})
-        st.rerun()
     st.sidebar.markdown("#### Palabra clave:")
     clave_sel = st.sidebar.text_input("Palabra clave:", value=st.session_state["clave_sel"], key="clave_sel")
 
@@ -121,10 +110,10 @@ else:
     """, unsafe_allow_html=True)
 
     st.text_area("📄 Descripción del Curso", value=curso["Descripción"], height=150)
-    st.text_area("📑 Comentarios", value=curso["Comentarios"], height=150)
+    st.text_area("📁 Comentarios", value=curso["Comentarios"], height=150)
 
     st.markdown("---")
-    st.subheader("📎 Archivos disponibles (Drive)")
+    st.subheader("📌 Archivos disponibles (Drive)")
     st.markdown("Consulta los documentos específicos del curso en su subcarpeta dedicada:")
 
     folder_row = df_links[(df_links["Codificación"] == curso['Codificación']) & (df_links["Programa"] == programa)]
