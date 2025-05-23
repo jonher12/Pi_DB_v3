@@ -134,6 +134,7 @@ st.markdown("<h1 style='text-align: center;'>Bienvenido a Pi DB v3</h1>", unsafe
 st.markdown(f"<h2 style='text-align: center;'>📚 Base de Datos de Cursos ({programa})</h2>", unsafe_allow_html=True)
 st.markdown("---")
 
+# Detalle del curso
 col1, col2 = st.columns([1, 2])
 with col1:
     st.markdown(f"""
@@ -150,12 +151,25 @@ with col1:
     </div>
     """, unsafe_allow_html=True)
 
+    # Archivos disponibles inmediatamente después de los detalles del curso
+    st.markdown("### 📎 Archivos disponibles (Drive)")
+    st.markdown("Consulta los documentos específicos del curso en su subcarpeta dedicada:")
+
+    folder_row = df_links[(df_links["Codificación"] == curso['Codificación']) & (df_links["Programa"] == programa)]
+    if not folder_row.empty:
+        folder_id = folder_row.iloc[0]["FolderID"]
+        subfolder_url = f"https://drive.google.com/drive/folders/{folder_id}"
+        st.markdown(f"[📂 Abrir carpeta del curso {curso['Codificación']}]({subfolder_url})")
+    else:
+        st.warning("⚠️ No se encontró el enlace directo para este curso.")
+
 with col2:
     st.markdown("### 📝 Descripción del Curso")
     st.text_area("", value=curso["Descripción"], height=220)
 
     st.markdown("### 🗒️ Comentarios")
     st.text_area("", value=curso["Comentarios"], height=180)
+
 
 st.markdown("---")
 st.subheader("📎 Archivos disponibles (Drive)")
