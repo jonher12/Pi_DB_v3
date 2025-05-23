@@ -23,8 +23,11 @@ def load_sheet(sheet_id):
         if response.status != 200:
             st.error(f"❌ No se pudo acceder al Google Sheet. Código: {response.status}")
             return pd.DataFrame()
-        df = pd.read_csv(url, dtype=str)
-        return df.fillna("")
+        df = pd.read_csv(url)
+        for col in ["Créditos", "HorasContacto", "Año", "Semestre"]:
+            if col in df.columns:
+                df[col] = df[col].astype(str)
+        return df
     except Exception as e:
         st.error(f"❌ Error al intentar leer Google Sheet: {e}")
         return pd.DataFrame()
@@ -70,23 +73,27 @@ else:
     titulos = sorted(df["TítuloCompletoEspañol"].dropna().unique())
 
     st.sidebar.markdown("#### Seleccionar código:")
-    cod_index = codigos.index(st.session_state.cod_sel) if st.session_state.cod_sel in codigos else 0
-    cod_sel = st.sidebar.selectbox("Seleccionar código:", codigos, index=cod_index, key="cod_sel")
-    if st.sidebar.button("Limpiar Filtro", key="btn_clear_cod"):
-        st.session_state.cod_sel = ""
+    selected_cod = st.sidebar.selectbox("Seleccionar código:", codigos, key="cod_sel")
+    if st.sidebar.button("Limpiar Filtro código"):
+        st.session_state["cod_sel"] = ""
+        st.session_state["tit_sel"] = ""
+        st.session_state["clave_sel"] = ""
         st.rerun()
 
     st.sidebar.markdown("#### Título del curso:")
-    tit_index = titulos.index(st.session_state.tit_sel) if st.session_state.tit_sel in titulos else 0
-    tit_sel = st.sidebar.selectbox("Título del curso:", titulos, index=tit_index, key="tit_sel")
-    if st.sidebar.button("Limpiar Filtro", key="btn_clear_tit"):
-        st.session_state.tit_sel = ""
+    selected_tit = st.sidebar.selectbox("Título del curso:", titulos, key="tit_sel")
+    if st.sidebar.button("Limpiar Filtro título"):
+        st.session_state["cod_sel"] = ""
+        st.session_state["tit_sel"] = ""
+        st.session_state["clave_sel"] = ""
         st.rerun()
 
     st.sidebar.markdown("#### Palabra clave:")
     clave_sel = st.sidebar.text_input("Palabra clave:", value=st.session_state["clave_sel"], key="clave_sel")
-    if st.sidebar.button("Limpiar Filtro", key="btn_clear_key"):
-        st.session_state.clave_sel = ""
+    if st.sidebar.button("Limpiar Filtro palabra"):
+        st.session_state["cod_sel"] = ""
+        st.session_state["tit_sel"] = ""
+        st.session_state["clave_sel"] = ""
         st.rerun()
 
     df_filtrado = df.copy()
@@ -107,7 +114,7 @@ else:
         st.stop()
 
     st.markdown(f"""
-    **Codificación:** {curso['Codificación']} &nbsp;&nbsp;&nbsp; **Estado:** {'Activo' if curso['Estatus'] == '1' else 'Inactivo'}  
+    **Codificación:** {curso['Codificación']} &nbsp;&nbsp;&nbsp; **Estado:** {'Activo' if str(curso['Estatus']) == '1' else 'Inactivo'}  
     **Título (ES):** {curso['TítuloCompletoEspañol']}  
     **Título (EN):** {curso['TítuloCompletoInglés']}  
     **Créditos:** {curso['Créditos']} &nbsp;&nbsp;&nbsp; **Horas Contacto:** {curso['HorasContacto']}  
