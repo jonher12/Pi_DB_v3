@@ -23,16 +23,15 @@ def load_sheet(sheet_id):
         if response.status != 200:
             st.error(f"❌ No se pudo acceder al Google Sheet. Código: {response.status}")
             return pd.DataFrame()
-        df = pd.read_csv(url)
+        df = pd.read_csv(url, dtype=str)  # Leer todo como texto
         for col in ["Créditos", "HorasContacto", "Año", "Semestre"]:
             if col in df.columns:
-                df[col] = df[col].fillna(0).astype(int)
+                df[col] = df[col].fillna("").astype(str).str.strip()
         return df
     except Exception as e:
         st.error(f"❌ Error al intentar leer Google Sheet: {e}")
         return pd.DataFrame()
 
-# ------------------- Login ----------------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
@@ -60,13 +59,11 @@ else:
         if key not in st.session_state:
             st.session_state[key] = ""
 
-    # ------------------- Panel Izquierdo ----------------------
     st.sidebar.markdown("---")
     st.sidebar.markdown("### Filtros de búsqueda")
     st.sidebar.caption("ℹ️ Para utilizar un filtro diferente, primero pulsa 'Limpiar Filtro'.")
 
-    # Botón global de limpieza
-    if st.sidebar.button("🔄 Limpiar todos los filtros", key="reset_all"):
+    if st.sidebar.button("🔄 Limpiar todos los filtros"):
         st.session_state["cod_sel"] = ""
         st.session_state["tit_sel"] = ""
         st.session_state["clave_sel"] = ""
@@ -76,30 +73,23 @@ else:
     titulos = sorted(df["TítuloCompletoEspañol"].dropna().unique())
 
     st.sidebar.markdown("#### Seleccionar código:")
-    st.session_state["cod_sel"] = st.sidebar.selectbox("Seleccionar código:", [""] + codigos, index=0 if not st.session_state["cod_sel"] else [""] + codigos.index(st.session_state["cod_sel"]) + 1, key="cod_sel_box")
+    st.sidebar.selectbox("Seleccionar código:", [""] + codigos, index=0, key="cod_sel")
     if st.sidebar.button("Limpiar Filtro", key="clear_cod"):
         st.session_state["cod_sel"] = ""
-        st.session_state["tit_sel"] = ""
-        st.session_state["clave_sel"] = ""
         st.rerun()
 
     st.sidebar.markdown("#### Título del curso:")
-    st.session_state["tit_sel"] = st.sidebar.selectbox("Título del curso:", [""] + titulos, index=0 if not st.session_state["tit_sel"] else [""] + titulos.index(st.session_state["tit_sel"]) + 1, key="tit_sel_box")
+    st.sidebar.selectbox("Título del curso:", [""] + titulos, index=0, key="tit_sel")
     if st.sidebar.button("Limpiar Filtro", key="clear_tit"):
-        st.session_state["cod_sel"] = ""
         st.session_state["tit_sel"] = ""
-        st.session_state["clave_sel"] = ""
         st.rerun()
 
     st.sidebar.markdown("#### Palabra clave:")
-    st.session_state["clave_sel"] = st.sidebar.text_input("Palabra clave:", value=st.session_state["clave_sel"], key="clave_sel_box")
-    if st.sidebar.button("Limpiar Filtro", key="clear_clave"):
-        st.session_state["cod_sel"] = ""
-        st.session_state["tit_sel"] = ""
+    st.sidebar.text_input("Palabra clave:", value=st.session_state["clave_sel"], key="clave_sel")
+    if st.sidebar.button("Limpiar Filtro", key="clear_key"):
         st.session_state["clave_sel"] = ""
         st.rerun()
 
-    # ------------------- Filtrado ----------------------
     df_filtrado = df.copy()
     if st.session_state["cod_sel"]:
         df_filtrado = df[df["Codificación"] == st.session_state["cod_sel"]]
@@ -110,16 +100,15 @@ else:
 
     curso = df_filtrado.iloc[0] if not df_filtrado.empty else df.iloc[0]
 
-    # ------------------- Panel Principal ----------------------
     st.title("📘 Bienvenido a Pi DB v3")
-    st.header(f"📚 Base de Datos de Cursos ({programa})")
+    st.header(f"📃 Base de Datos de Cursos ({programa})")
 
     if curso is None:
         st.warning("No se encontraron cursos que coincidan con los filtros seleccionados.")
         st.stop()
 
     st.markdown(f"""
-    **Codificación:** {curso['Codificación']} &nbsp;&nbsp;&nbsp; **Estado:** {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}  
+    **Codificación:** {curso['Codificación']} &nbsp;&nbsp;&nbsp; **Estado:** {'Activo' if curso['Estatus'] == '1' else 'Inactivo'}  
     **Título (ES):** {curso['TítuloCompletoEspañol']}  
     **Título (EN):** {curso['TítuloCompletoInglés']}  
     **Créditos:** {curso['Créditos']} &nbsp;&nbsp;&nbsp; **Horas Contacto:** {curso['HorasContacto']}  
@@ -128,10 +117,10 @@ else:
     """, unsafe_allow_html=True)
 
     st.text_area("📄 Descripción del Curso", value=curso["Descripción"], height=150)
-    st.text_area("📑 Comentarios", value=curso["Comentarios"], height=150)
+    st.text_area("📁 Comentarios", value=curso["Comentarios"], height=150)
 
     st.markdown("---")
-    st.subheader("📎 Archivos disponibles (Drive)")
+    st.subheader("📌 Archivos disponibles (Drive)")
     st.markdown("Consulta los documentos específicos del curso en su subcarpeta dedicada:")
 
     folder_row = df_links[(df_links["Codificación"] == curso['Codificación']) & (df_links["Programa"] == programa)]
