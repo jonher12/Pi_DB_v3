@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import urllib.request
 
-st.set_page_config(page_title="📘 Pi DB v3", layout="wide")
+st.set_page_config(page_title="Pi DB v3", layout="wide")
 
 SHEET_IDS = {
     "PharmD": st.secrets["SHEET_ID_PHARMD"].strip(),
@@ -16,12 +16,15 @@ FOLDER_LINKS = {
 
 DRIVE_LINK_SHEET_ID = st.secrets["DRIVE_LINK_SHEET_ID"].strip()
 
+# Load Google Sheet
+@st.cache_data
+
 def load_sheet(sheet_id):
     url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
     try:
         response = urllib.request.urlopen(url)
         if response.status != 200:
-            st.error(f"❌ No se pudo acceder al Google Sheet. Código: {response.status}")
+            st.error(f"No se pudo acceder al Google Sheet. Código: {response.status}")
             return pd.DataFrame()
         df = pd.read_csv(url)
         for col in ["Créditos", "HorasContacto", "Año", "Semestre"]:
@@ -32,29 +35,32 @@ def load_sheet(sheet_id):
                     df[col] = df[col].astype(str)
         return df
     except Exception as e:
-        st.error(f"❌ Error al intentar leer Google Sheet: {e}")
+        st.error(f"Error al intentar leer Google Sheet: {e}")
         return pd.DataFrame()
 
+# Login system
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 3, 1])
+    with col1:
+        st.image("logo RCM.jpg", width=100)
+    with col3:
+        st.image("Farmacia 110 ESP.png", width=150)
+    
     with col2:
-        st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Books-aj.svg_aj_ashton_01.svg/1024px-Books-aj.svg_aj_ashton_01.svg.png", width=60)
-        st.title("Bienvenido a Pi DB v3")
+        st.markdown("<h1 style='text-align: center;'>Bienvenido a Pi DB v3</h1>", unsafe_allow_html=True)
+        st.markdown("---")
         with st.form("login"):
-            st.markdown("<div style='background-color: #f9f9f9; padding: 2em; border-radius: 10px;'>", unsafe_allow_html=True)
             user = st.text_input("Usuario:")
             password = st.text_input("Contraseña:", type="password")
-            login = st.form_submit_button("Ingresar")
-            st.markdown("</div>", unsafe_allow_html=True)
-        if login:
-            if user == "j" and password == "1":
-                st.session_state.logged_in = True
-                st.rerun()
-            else:
-                st.error("❌ Credenciales incorrectas")
+            if st.form_submit_button("Ingresar"):
+                if user == "j" and password == "1":
+                    st.session_state.logged_in = True
+                    st.rerun()
+                else:
+                    st.error("❌ Credenciales incorrectas")
 else:
     st.sidebar.title("Navegación")
     programa = st.sidebar.radio("Selecciona el programa:", ["PharmD", "PhD"], key="programa")
@@ -82,13 +88,19 @@ else:
     titulos = sorted(df["TítuloCompletoEspañol"].dropna().unique().tolist())
 
     st.sidebar.markdown("#### Seleccionar código:")
-    cod_sel = st.sidebar.selectbox("Seleccionar código:", codigos, index=codigos.index(st.session_state["cod_sel"]) if st.session_state["cod_sel"] in codigos else 0, key="cod_sel")
+    st.session_state["cod_sel"] = st.sidebar.selectbox(
+        "Seleccionar código:", codigos,
+        index=codigos.index(st.session_state["cod_sel"]) if st.session_state["cod_sel"] in codigos else 0,
+        key="cod_sel")
 
     st.sidebar.markdown("#### Título del curso:")
-    tit_sel = st.sidebar.selectbox("Título del curso:", titulos, index=titulos.index(st.session_state["tit_sel"]) if st.session_state["tit_sel"] in titulos else 0, key="tit_sel")
+    st.session_state["tit_sel"] = st.sidebar.selectbox(
+        "Título del curso:", titulos,
+        index=titulos.index(st.session_state["tit_sel"]) if st.session_state["tit_sel"] in titulos else 0,
+        key="tit_sel")
 
     st.sidebar.markdown("#### Palabra clave:")
-    clave_sel = st.sidebar.text_input("Palabra clave:", value=st.session_state["clave_sel"], key="clave_sel")
+    st.session_state["clave_sel"] = st.sidebar.text_input("Palabra clave:", value=st.session_state["clave_sel"], key="clave_sel")
 
     df_filtrado = df.copy()
     if st.session_state["cod_sel"]:
@@ -100,35 +112,28 @@ else:
 
     curso = df_filtrado.iloc[0] if not df_filtrado.empty else df.iloc[0]
 
-    st.markdown("<h1 style='text-align: center;'>Bienvenido a Pi DB v3</h1>", unsafe_allow_html=True)
-    st.markdown(f"<h2 style='text-align: center;'>📚 Base de Datos de Cursos ({programa})</h2>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center;'>📚 Base de Datos de Cursos ({})</h1>".format(programa), unsafe_allow_html=True)
+    st.markdown("---")
 
-    if curso is None:
-        st.warning("No se encontraron cursos que coincidan con los filtros seleccionados.")
-        st.stop()
-
-    col1, col2 = st.columns([2, 3])
-
+    col1, col2 = st.columns([1, 2])
     with col1:
         st.markdown(f"""
-        <div style='font-size: 18px;'>
-        <b>Codificación:</b> {curso['Codificación']}<br>
-        <b>Estado:</b> {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}<br>
-        <b>Título (ES):</b> {curso['TítuloCompletoEspañol']}<br>
-        <b>Título (EN):</b> {curso['TítuloCompletoInglés']}<br>
-        <b>Créditos:</b> {curso['Créditos']}<br>
-        <b>Horas Contacto:</b> {curso['HorasContacto']}<br>
-        <b>Año:</b> {curso['Año']}<br>
-        <b>Semestre:</b> {curso['Semestre']}<br>
-        <b>Fecha Revisión:</b> {curso['FechaUltimaRevisión']}<br>
-        </div>
+        **<span style='font-size: 18px;'>Codificación:</span>** {curso['Codificación']}  
+        **<span style='font-size: 18px;'>Estado:</span>** {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}  
+        **<span style='font-size: 18px;'>Título (ES):</span>** {curso['TítuloCompletoEspañol']}  
+        **<span style='font-size: 18px;'>Título (EN):</span>** {curso['TítuloCompletoInglés']}  
+        **<span style='font-size: 18px;'>Créditos:</span>** {curso['Créditos']}  
+        **<span style='font-size: 18px;'>Horas Contacto:</span>** {curso['HorasContacto']}  
+        **<span style='font-size: 18px;'>Año:</span>** {curso['Año']}  
+        **<span style='font-size: 18px;'>Semestre:</span>** {curso['Semestre']}  
+        **<span style='font-size: 18px;'>Fecha Revisión:</span>** {curso['FechaUltimaRevisión']}
         """, unsafe_allow_html=True)
 
     with col2:
-        st.subheader("📄 Descripción del Curso")
-        st.text_area("", value=curso["Descripción"], height=250)
-        st.subheader("📑 Comentarios")
-        st.text_area("", value=curso["Comentarios"], height=250)
+        st.markdown("### 📝 Descripción del Curso")
+        st.text_area("", value=curso["Descripción"], height=200)
+        st.markdown("### 💬 Comentarios")
+        st.text_area("", value=curso["Comentarios"], height=150)
 
     st.markdown("---")
     st.subheader("📎 Archivos disponibles (Drive)")
