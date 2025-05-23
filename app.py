@@ -75,22 +75,20 @@ else:
         st.session_state.palabra_clave = ""
         st.rerun()
 
-    palabra_clave = st.sidebar.text_input("Palabra clave:", value=st.session_state.palabra_clave, key="palabra_clave")
-
-    df_filtrado = df.copy()
-    if palabra_clave:
-        df_filtrado = df_filtrado[df_filtrado.apply(lambda row: palabra_clave.lower() in str(row).lower(), axis=1)]
-
     cod_index = codigos.index(st.session_state.cod_sel) + 1 if st.session_state.cod_sel in codigos else 0
     tit_index = titulos.index(st.session_state.tit_sel) + 1 if st.session_state.tit_sel in titulos else 0
 
-    cod_sel = st.sidebar.selectbox("Codificación:", [""] + codigos, index=cod_index, key="cod_sel")
+    cod_sel = st.sidebar.selectbox("Seleccionar curso:", [""] + codigos, index=cod_index, key="cod_sel")
     tit_sel = st.sidebar.selectbox("Título del curso:", [""] + titulos, index=tit_index, key="tit_sel")
+    palabra_clave = st.sidebar.text_input("Palabra clave:", value=st.session_state.palabra_clave, key="palabra_clave")
 
+    df_filtrado = df.copy()
     if cod_sel:
         df_filtrado = df_filtrado[df_filtrado["Codificación"] == cod_sel]
     elif tit_sel:
         df_filtrado = df_filtrado[df_filtrado["TítuloCompletoEspañol"] == tit_sel]
+    elif palabra_clave:
+        df_filtrado = df_filtrado[df_filtrado.apply(lambda row: palabra_clave.lower() in str(row).lower(), axis=1)]
 
     curso = df_filtrado.iloc[0] if not df_filtrado.empty else df.iloc[0]
 
