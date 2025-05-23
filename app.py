@@ -49,41 +49,37 @@ if not st.session_state.logged_in:
                 st.error("❌ Credenciales incorrectas")
 else:
     st.sidebar.title("Navegación")
-    programa = st.sidebar.radio("Selecciona el programa:", ["PharmD", "PhD"])
+    programa = st.sidebar.radio("Selecciona el programa:", ["PharmD", "PhD"], key="programa")
     df = load_sheet(SHEET_IDS[programa])
     df_links = load_sheet(DRIVE_LINK_SHEET_ID)
 
     if df.empty or df_links.empty:
         st.stop()
 
-    # FILTROS EN LA BARRA LATERAL
     st.sidebar.markdown("---")
     st.sidebar.markdown("### Filtros de búsqueda")
+
+    codigos = sorted(df["Codificación"].dropna().unique().tolist())
+    titulos = sorted(df["TítuloCompletoEspañol"].dropna().unique().tolist())
 
     if st.sidebar.button("🔄 Limpiar filtros"):
         st.session_state["cod_sel"] = ""
         st.session_state["tit_sel"] = ""
         st.session_state["palabra_clave"] = ""
+        st.session_state["curso_seleccionado"] = ""
+        st.rerun()
 
-    cod_sel = st.sidebar.text_input("Filtrar por codificación:", key="cod_sel")
-    tit_sel = st.sidebar.text_input("Filtrar por título del curso:", key="tit_sel")
-    palabra_clave = st.sidebar.text_input("Filtrar por palabra clave:", key="palabra_clave")
+    cod_sel = st.sidebar.selectbox("Codificación:", [""] + codigos, index=0, key="cod_sel")
+    tit_sel = st.sidebar.selectbox("Título del curso:", [""] + titulos, index=0, key="tit_sel")
+    palabra_clave = st.sidebar.text_input("Palabra clave:", key="palabra_clave")
 
     # APLICAR FILTROS
     df_filtrado = df.copy()
 
-    if cod_sel:
-        if cod_sel in df_filtrado["Codificación"].values:
-            df_filtrado = df_filtrado[df_filtrado["Codificación"] == cod_sel]
-        else:
-            df_filtrado = pd.DataFrame()
-
-    if tit_sel:
-        if tit_sel in df_filtrado["TítuloCompletoEspañol"].values:
-            df_filtrado = df_filtrado[df_filtrado["TítuloCompletoEspañol"] == tit_sel]
-        else:
-            df_filtrado = pd.DataFrame()
-
+    if cod_sel and cod_sel in df_filtrado["Codificación"].values:
+        df_filtrado = df_filtrado[df_filtrado["Codificación"] == cod_sel]
+    if tit_sel and tit_sel in df_filtrado["TítuloCompletoEspañol"].values:
+        df_filtrado = df_filtrado[df_filtrado["TítuloCompletoEspañol"] == tit_sel]
     if palabra_clave:
         df_filtrado = df_filtrado[
             df_filtrado.apply(lambda row: palabra_clave.lower() in str(row).lower(), axis=1)
@@ -96,8 +92,9 @@ else:
         st.warning("No se encontraron cursos que coincidan con los filtros seleccionados.")
         st.stop()
 
-    codigo = st.selectbox("Seleccione un curso:", sorted(df_filtrado["Codificación"].dropna().unique()))
-    curso = df_filtrado[df_filtrado["Codificación"] == codigo].iloc[0]
+    codigos_filtrados = sorted(df_filtrado["Codificación"].dropna().unique())
+    curso_sel = st.sidebar.selectbox("Seleccione un curso:", codigos_filtrados, key="curso_seleccionado")
+    curso = df_filtrado[df_filtrado["Codificación"] == curso_sel].iloc[0]
 
     st.markdown(f"""
     **Codificación:** {curso['Codificación']} &nbsp;&nbsp;&nbsp; **Estado:** {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}  
@@ -115,11 +112,11 @@ else:
     st.subheader("📎 Archivos disponibles (Drive)")
     st.markdown("Consulta los documentos específicos del curso en su subcarpeta dedicada:")
 
-    folder_row = df_links[(df_links["Codificación"] == codigo) & (df_links["Programa"] == programa)]
+    folder_row = df_links[(df_links["Codificación"] == curso_sel) & (df_links["Programa"] == programa)]
     if not folder_row.empty:
         folder_id = folder_row.iloc[0]["FolderID"]
         subfolder_url = f"https://drive.google.com/drive/folders/{folder_id}"
-        st.markdown(f"[📂 Abrir carpeta del curso {codigo}]({subfolder_url})")
+        st.markdown(f"[📂 Abrir carpeta del curso {curso_sel}]({subfolder_url})")
     else:
         st.warning("⚠️ No se encontró el enlace directo para este curso.")
 
