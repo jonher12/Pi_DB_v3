@@ -64,9 +64,9 @@ else:
 
     st.sidebar.markdown("---")
     st.sidebar.markdown("### Filtros de búsqueda")
-    st.sidebar.caption("ℹ️ Para utilizar un filtro diferente, primero pulsa 'Limpiar Filtro'.")
+    st.sidebar.caption("ℹ️ Para utilizar un filtro diferente, primero pulsa 'Limpiar Filtros'.")
 
-    if st.sidebar.button("🔄 Limpiar todos los filtros", key="btn_clear_all"):
+    if st.sidebar.button("🔄 Limpiar Filtros", key="btn_clear_all"):
         for k in ["cod_sel", "tit_sel", "clave_sel"]:
             st.session_state[k] = ""
         st.rerun()
