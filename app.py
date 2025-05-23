@@ -87,7 +87,7 @@ if not st.session_state.logged_in:
 
 # App body
 st.sidebar.title("Navegación")
-programa = st.sidebar.radio("Selecciona el programa:", ["PharmD", "PhD"], key="programa")
+programa = st.sidebar.radio("Selecciona el Programa:", ["PharmD", "PhD"], key="programa")
 df = load_sheet(SHEET_IDS[programa])
 df_links = load_sheet(DRIVE_LINK_SHEET_ID)
 
@@ -99,10 +99,10 @@ for key in ["cod_sel", "tit_sel", "clave_sel"]:
         st.session_state[key] = ""
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("### Filtros de búsqueda")
-st.sidebar.caption("ℹ️ Para utilizar un filtro diferente, primero pulsa 'Limpiar Filtro'.")
+st.sidebar.markdown("### Filtros de Búsqueda")
+st.sidebar.caption("ℹ️ Para utilizar un filtro diferente, primero pulsa 'Limpiar Filtros'.")
 
-if st.sidebar.button("🔄 Limpiar todos los filtros", key="btn_clear_all"):
+if st.sidebar.button("🔄 Limpiar Filtros", key="btn_clear_all"):
     st.session_state["cod_sel"] = ""
     st.session_state["tit_sel"] = ""
     st.session_state["clave_sel"] = ""
@@ -111,14 +111,14 @@ if st.sidebar.button("🔄 Limpiar todos los filtros", key="btn_clear_all"):
 codigos = sorted(df["Codificación"].dropna().unique().tolist())
 titulos = sorted(df["TítuloCompletoEspañol"].dropna().unique().tolist())
 
-st.sidebar.markdown("#### Seleccionar código:")
-st.sidebar.selectbox("Seleccionar código:", codigos, index=codigos.index(st.session_state["cod_sel"]) if st.session_state["cod_sel"] in codigos else 0, key="cod_sel")
+st.sidebar.markdown("#### Seleccionar Código:")
+st.sidebar.selectbox("Seleccionar Código:", codigos, index=codigos.index(st.session_state["cod_sel"]) if st.session_state["cod_sel"] in codigos else 0, key="cod_sel")
 
-st.sidebar.markdown("#### Título del curso:")
-st.sidebar.selectbox("Título del curso:", titulos, index=titulos.index(st.session_state["tit_sel"]) if st.session_state["tit_sel"] in titulos else 0, key="tit_sel")
+st.sidebar.markdown("#### Título del Curso:")
+st.sidebar.selectbox("Título del Curso:", titulos, index=titulos.index(st.session_state["tit_sel"]) if st.session_state["tit_sel"] in titulos else 0, key="tit_sel")
 
-st.sidebar.markdown("#### Palabra clave:")
-st.sidebar.text_input("Palabra clave:", value=st.session_state["clave_sel"], key="clave_sel")
+st.sidebar.markdown("#### Palabra Clave:")
+st.sidebar.text_input("Palabra Clave:", value=st.session_state["clave_sel"], key="clave_sel")
 
 df_filtrado = df.copy()
 if st.session_state["cod_sel"]:
@@ -130,7 +130,7 @@ elif st.session_state["clave_sel"]:
 
 curso = df_filtrado.iloc[0] if not df_filtrado.empty else df.iloc[0]
 
-st.markdown("<h1 style='text-align: center;'>Bienvenido a Pi DB v3</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>Bienvenido a Pi v3</h1>", unsafe_allow_html=True)
 st.markdown(f"<h2 style='text-align: center;'>📚 Base de Datos de Cursos ({programa})</h2>", unsafe_allow_html=True)
 st.markdown("---")
 
