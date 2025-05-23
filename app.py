@@ -16,7 +16,6 @@ FOLDER_LINKS = {
 
 DRIVE_LINK_SHEET_ID = st.secrets["DRIVE_LINK_SHEET_ID"].strip()
 
-
 def load_sheet(sheet_id):
     url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
     try:
@@ -41,13 +40,13 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
-    # Layout centrado estilo pop-up con logos
+    # Google Drive direct links for logos
+    logo_rcm_url = "https://drive.google.com/uc?export=view&id=1HI9agfUz0nw1Jiln3aE6XKFh3qpjgk0W"
+    logo_farmacia_url = "https://drive.google.com/uc?export=view&id=1fJi8AeI7kO8Mjvjl9V4bqrkuN4KDGV42"
+
     col1, col2, col3 = st.columns([1, 2, 1])
     with col1:
-        st.image("logo RCM.jpg", width=100)
-    with col3:
-        st.image("Farmacia 110 ESP.png", width=150)
-
+        st.image(logo_rcm_url, width=100)
     with col2:
         st.markdown("<h1 style='text-align: center;'>π Bienvenido a Pi DB v3</h1>", unsafe_allow_html=True)
         st.markdown("---")
@@ -61,6 +60,9 @@ if not st.session_state.logged_in:
                         st.rerun()
                     else:
                         st.error("❌ Credenciales incorrectas")
+    with col3:
+        st.image(logo_farmacia_url, width=150)
+
     st.stop()
 
 # ---- APP BODY ----
@@ -113,23 +115,23 @@ st.markdown("<h1 style='text-align: center;'>Bienvenido a Pi DB v3</h1>", unsafe
 st.markdown(f"<h2 style='text-align: center;'>📚 Base de Datos de Cursos ({programa})</h2>", unsafe_allow_html=True)
 st.markdown("---")
 
-# Detalle del curso y descripción
-col1, col2 = st.columns([1, 2])
-with col1:
-    st.markdown(f"""
-    <div style="font-size: 18px;">
-    <b>Codificación:</b> {curso['Codificación']}<br>
-    <b>Estado:</b> {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}<br><br>
-    <b>Título (ES):</b> {curso['TítuloCompletoEspañol']}<br>
-    <b>Título (EN):</b> {curso['TítuloCompletoInglés']}<br><br>
-    <b>Créditos:</b> {curso['Créditos']}<br>
-    <b>Horas Contacto:</b> {curso['HorasContacto']}<br><br>
-    <b>Año:</b> {curso['Año']}<br>
-    <b>Semestre:</b> {curso['Semestre']}<br><br>
-    <b>Fecha Revisión:</b> {curso['FechaUltimaRevisión']}<br>
-    </div>
-    """, unsafe_allow_html=True)
+# Detalle del curso
+st.markdown(f"""
+<div style="font-size: 18px;">
+<b>Codificación:</b> {curso['Codificación']}<br>
+<b>Estado:</b> {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}<br><br>
+<b>Título (ES):</b> {curso['TítuloCompletoEspañol']}<br>
+<b>Título (EN):</b> {curso['TítuloCompletoInglés']}<br><br>
+<b>Créditos:</b> {curso['Créditos']}<br>
+<b>Horas Contacto:</b> {curso['HorasContacto']}<br><br>
+<b>Año:</b> {curso['Año']}<br>
+<b>Semestre:</b> {curso['Semestre']}<br><br>
+<b>Fecha Revisión:</b> {curso['FechaUltimaRevisión']}<br>
+</div>
+""", unsafe_allow_html=True)
 
+# Descripción y comentarios
+col1, col2 = st.columns([1, 2])
 with col2:
     st.markdown("### 📝 Descripción del Curso")
     st.text_area("", value=curso["Descripción"], height=220)
