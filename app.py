@@ -41,7 +41,7 @@ if "logged_in" not in st.session_state:
 
 if not st.session_state.logged_in:
     # Encabezado con logos e ícono π
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 2])
     with col1:
         st.image("logo_rcm.png", width=120)
     with col2:
