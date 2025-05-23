@@ -2,10 +2,8 @@ import streamlit as st
 import pandas as pd
 import urllib.request
 
-# 🟢 ESTO DEBE SER LA PRIMERA INSTRUCCIÓN STREAMLIT
 st.set_page_config(page_title="📘 Pi DB v3", layout="wide")
 
-# ---------- CONFIGURACIÓN ----------
 SHEET_IDS = {
     "PharmD": st.secrets["SHEET_ID_PHARMD"].strip(),
     "PhD": st.secrets["SHEET_ID_PHD"].strip()
@@ -19,7 +17,6 @@ FOLDER_LINKS = {
 DRIVE_LINK_SHEET_ID = st.secrets["DRIVE_LINK_SHEET_ID"].strip()
 
 def load_sheet(sheet_id):
-    sheet_id = sheet_id.strip()
     url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
     try:
         response = urllib.request.urlopen(url)
@@ -31,7 +28,6 @@ def load_sheet(sheet_id):
         st.error(f"❌ Error al intentar leer Google Sheet: {e}")
         return pd.DataFrame()
 
-# ---------- LOGIN ----------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
@@ -79,8 +75,16 @@ else:
     cod_index = codigos.index(st.session_state.cod_sel) + 1 if st.session_state.cod_sel in codigos else 0
     tit_index = titulos.index(st.session_state.tit_sel) + 1 if st.session_state.tit_sel in titulos else 0
 
-    cod_sel = st.sidebar.selectbox("Seleccionar curso:", [""] + codigos, index=cod_index, key="cod_sel")
+    cod_sel = st.sidebar.selectbox("Seleccionar código:", [""] + codigos, index=cod_index, key="cod_sel")
+    if st.sidebar.button("Limpiar Filtro", key="clear_cod"):
+        st.session_state.cod_sel = ""
+        st.rerun()
+
     tit_sel = st.sidebar.selectbox("Título del curso:", [""] + titulos, index=tit_index, key="tit_sel")
+    if st.sidebar.button("Limpiar Filtro", key="clear_tit"):
+        st.session_state.tit_sel = ""
+        st.rerun()
+
     palabra_clave = st.sidebar.text_input("Palabra clave:", value=st.session_state.palabra_clave, key="palabra_clave")
 
     df_filtrado = df.copy()
