@@ -40,7 +40,7 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
-    # Encabezado con logos e ícono π desplazado sutilmente a la izquierda
+    # Encabezado con logos
     empty_col, col1, col2, col3 = st.columns([0.5, 1, 2, 1])
     
     with col1:
@@ -52,7 +52,7 @@ if not st.session_state.logged_in:
             st.image("pi.png", width=45)
         with col_title:
             st.markdown(
-            "<h1 style='margin: 0; padding-top: 10px; margin-left: -30px;'>Bienvenido a Pi DB v3</h1>",
+            "<h1 style='margin: 0; padding-top: 10px; margin-left: -30px;'>Bienvenido a Pi v3</h1>",
             unsafe_allow_html=True
             )
     
