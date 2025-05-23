@@ -40,14 +40,14 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
-    # Encabezado con logos e ícono π desplazado a la derecha
+    # Encabezado con logos e ícono π desplazado sutilmente a la izquierda
     empty_col, col1, col2, col3 = st.columns([0.5, 1, 2, 1])
     
     with col1:
         st.image("logo_rcm.png", width=120)
     
     with col2:
-        col_pi, col_title = st.columns([1, 6])
+        col_pi, col_title = st.columns([1.2, 5.8])  # Ajuste: mueve contenido levemente a la izquierda
         with col_pi:
             st.image("pi.png", width=45)
         with col_title:
