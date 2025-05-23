@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import urllib.request
+from PIL import Image
 
 st.set_page_config(page_title="📘 Pi DB v3", layout="wide")
 
@@ -35,31 +36,25 @@ def load_sheet(sheet_id):
         st.error(f"❌ Error al intentar leer Google Sheet: {e}")
         return pd.DataFrame()
 
-# Initialize session state
-for key in ["logged_in", "cod_sel", "tit_sel", "clave_sel"]:
-    if key not in st.session_state:
-        st.session_state[key] = False if key == "logged_in" else ""
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 
-# Login screen
 if not st.session_state.logged_in:
-    col1, col2, col3 = st.columns([1, 6, 1])
+    col1, col2 = st.columns([1, 6])
+    with col1:
+        st.image("https://upload.wikimedia.org/wikipedia/commons/2/2e/Pi-symbol.svg", width=50)
     with col2:
-        st.markdown("<h1 style='text-align:center;'>π Bienvenido a Pi DB v3</h1>", unsafe_allow_html=True)
-        st.markdown("---")
-        with st.container():
-            with st.form("login"):
-                user = st.text_input("Usuario:")
-                password = st.text_input("Contraseña:", type="password")
-                if st.form_submit_button("Ingresar"):
-                    if user == "j" and password == "1":
-                        st.session_state.logged_in = True
-                        st.rerun()
-                    else:
-                        st.error("❌ Credenciales incorrectas")
-    col1.image("logo RCM.jpg", width=100)
-    col3.image("Farmacia 110 ESP.png", width=150)
-
-# Main interface
+        st.title("Bienvenido a Pi DB v3")
+    st.markdown("---")
+    with st.form("login"):
+        user = st.text_input("Usuario:")
+        password = st.text_input("Contraseña:", type="password")
+        if st.form_submit_button("Ingresar"):
+            if user == "j" and password == "1":
+                st.session_state.logged_in = True
+                st.rerun()
+            else:
+                st.error("❌ Credenciales incorrectas")
 else:
     st.sidebar.title("Navegación")
     programa = st.sidebar.radio("Selecciona el programa:", ["PharmD", "PhD"], key="programa")
@@ -68,6 +63,10 @@ else:
 
     if df.empty or df_links.empty:
         st.stop()
+
+    for key in ["cod_sel", "tit_sel", "clave_sel"]:
+        if key not in st.session_state:
+            st.session_state[key] = ""
 
     st.sidebar.markdown("---")
     st.sidebar.markdown("### Filtros de búsqueda")
@@ -101,12 +100,16 @@ else:
 
     curso = df_filtrado.iloc[0] if not df_filtrado.empty else df.iloc[0]
 
-    st.markdown(f"<h1 style='text-align:center;'>Bienvenido a Pi DB v3</h1>", unsafe_allow_html=True)
+    st.title("Bienvenido a Pi DB v3")
     st.markdown("---")
-    st.markdown(f"## 📚 Base de Datos de Cursos ({programa})")
+    st.header(f"📚 Base de Datos de Cursos ({programa})")
+
+    if curso is None:
+        st.warning("No se encontraron cursos que coincidan con los filtros seleccionados.")
+        st.stop()
 
     st.markdown(f"""
-    <div style="font-size:18px;">
+    <div style='font-size:18px;'>
     <b>Codificación:</b> {curso['Codificación']}<br>
     <b>Estado:</b> {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}<br>
     <b>Título (ES):</b> {curso['TítuloCompletoEspañol']}<br>
@@ -119,11 +122,13 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("### 📝 Descripción del Curso")
-    st.text_area("", value=curso["Descripción"], height=200)
+    col1, col2 = st.columns([1, 2])
+    with col2:
+        st.markdown("#### 📄 Descripción del Curso")
+        st.text_area("", value=curso["Descripción"], height=200)
 
-    st.markdown("### 🗒️ Comentarios")
-    st.text_area("", value=curso["Comentarios"], height=180)
+        st.markdown("#### 🗒 Comentarios")
+        st.text_area("", value=curso["Comentarios"], height=200)
 
     st.markdown("---")
     st.subheader("📎 Archivos disponibles (Drive)")
