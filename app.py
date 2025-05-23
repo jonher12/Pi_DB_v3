@@ -40,13 +40,12 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
-    # Google Drive direct links for logos
-    logo_rcm_url = "https://drive.google.com/uc?export=view&id=1HI9agfUz0nw1Jiln3aE6XKFh3qpjgk0W"
-    logo_farmacia_url = "https://drive.google.com/uc?export=view&id=1fJi8AeI7kO8Mjvjl9V4bqrkuN4KDGV42"
-
+    # Layout centrado estilo pop-up con logos laterales
     col1, col2, col3 = st.columns([1, 2, 1])
+    
     with col1:
-        st.image(logo_rcm_url, width=100)
+        st.image("logo_rcm.png", width=100)
+    
     with col2:
         st.markdown("<h1 style='text-align: center;'>π Bienvenido a Pi DB v3</h1>", unsafe_allow_html=True)
         st.markdown("---")
@@ -60,8 +59,9 @@ if not st.session_state.logged_in:
                         st.rerun()
                     else:
                         st.error("❌ Credenciales incorrectas")
+    
     with col3:
-        st.image(logo_farmacia_url, width=150)
+        st.image("logo_farmacia.png", width=150)
 
     st.stop()
 
