@@ -155,7 +155,7 @@ with col1:
     st.markdown("<br>", unsafe_allow_html=True)
 
     # Archivos disponibles justo después de los detalles
-    st.markdown("####📎 Upload & Download de Documentos del Curso")
+    st.markdown("#### 📎 Upload & Download de Documentos del Curso")
     st.markdown("Consulta los documentos específicos del curso en su subcarpeta dedicada:")
 
     folder_row = df_links[(df_links["Codificación"] == curso['Codificación']) & (df_links["Programa"] == programa)]
