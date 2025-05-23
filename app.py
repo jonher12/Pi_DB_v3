@@ -69,41 +69,33 @@ else:
         st.rerun()
 
     cod_sel = st.sidebar.selectbox("Codificación:", [""] + codigos, index=0, key="cod_sel")
-
-    # Sincronizar título si codificación está seleccionada
-    if cod_sel:
-        titulo_match = df[df["Codificación"] == cod_sel]["TítuloCompletoEspañol"]
-        if not titulo_match.empty:
-            st.session_state["tit_sel"] = titulo_match.iloc[0]
-
     tit_sel = st.sidebar.selectbox("Título del curso:", [""] + titulos, index=0, key="tit_sel")
-
-    # Sincronizar codificación si título está seleccionada
-    if tit_sel and not cod_sel:
-        cod_match = df[df["TítuloCompletoEspañol"] == tit_sel]["Codificación"]
-        if not cod_match.empty:
-            st.session_state["cod_sel"] = cod_match.iloc[0]
-
     palabra_clave = st.sidebar.text_input("Palabra clave:", key="palabra_clave")
 
     df_filtrado = df.copy()
     curso = None
 
-    if cod_sel:
-        curso_match = df[df["Codificación"] == cod_sel]
-        if not curso_match.empty:
-            curso = curso_match.iloc[0]
-    elif tit_sel:
-        curso_match = df[df["TítuloCompletoEspañol"] == tit_sel]
-        if not curso_match.empty:
-            curso = curso_match.iloc[0]
-    elif palabra_clave:
+    if palabra_clave:
         df_filtrado = df[df.apply(lambda row: palabra_clave.lower() in str(row).lower(), axis=1)]
-        if not df_filtrado.empty:
-            curso = df_filtrado.iloc[0]
+    if cod_sel:
+        df_filtrado = df_filtrado[df_filtrado["Codificación"] == cod_sel]
+    if tit_sel:
+        df_filtrado = df_filtrado[df_filtrado["TítuloCompletoEspañol"] == tit_sel]
+
+    if not df_filtrado.empty:
+        curso = df_filtrado.iloc[0]
+        if not cod_sel:
+            st.session_state["cod_sel"] = curso["Codificación"]
+        if not tit_sel:
+            st.session_state["tit_sel"] = curso["TítuloCompletoEspañol"]
 
     st.title("📘 Bienvenido a Pi DB v3")
     st.header(f"📚 Base de Datos de Cursos ({programa})")
+
+    if curso is None:
+        curso = df.iloc[0]
+        st.session_state["cod_sel"] = curso["Codificación"]
+        st.session_state["tit_sel"] = curso["TítuloCompletoEspañol"]
 
     if curso is None:
         st.warning("No se encontraron cursos que coincidan con los filtros seleccionados.")
