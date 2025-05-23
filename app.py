@@ -151,7 +151,10 @@ with col1:
     </div>
     """, unsafe_allow_html=True)
 
-    # Archivos disponibles inmediatamente después de los detalles del curso
+    # Espacio visual antes de archivos
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Archivos disponibles justo después de los detalles
     st.markdown("### 📎 Archivos disponibles (Drive)")
     st.markdown("Consulta los documentos específicos del curso en su subcarpeta dedicada:")
 
@@ -170,19 +173,6 @@ with col2:
     st.markdown("### 🗒️ Comentarios")
     st.text_area("", value=curso["Comentarios"], height=180)
 
-
-st.markdown("---")
-st.subheader("📎 Archivos disponibles (Drive)")
-st.markdown("Consulta los documentos específicos del curso en su subcarpeta dedicada:")
-
-folder_row = df_links[(df_links["Codificación"] == curso['Codificación']) & (df_links["Programa"] == programa)]
-if not folder_row.empty:
-    folder_id = folder_row.iloc[0]["FolderID"]
-    subfolder_url = f"https://drive.google.com/drive/folders/{folder_id}"
-    st.markdown(f"[📂 Abrir carpeta del curso {curso['Codificación']}]({subfolder_url})")
-else:
-    st.warning("⚠️ No se encontró el enlace directo para este curso.")
-
+# Pie de página
 st.markdown("---")
 st.caption("División de Evaluación de la Efectividad Curricular e Institucional. Todos los derechos reservados. JHA 2025©. Administrador: Jonathan Hernández-Agosto, EdD, GCG.")
-
