@@ -16,6 +16,7 @@ FOLDER_LINKS = {
 
 DRIVE_LINK_SHEET_ID = st.secrets["DRIVE_LINK_SHEET_ID"].strip()
 
+# Load sheet function
 def load_sheet(sheet_id):
     url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
     try:
@@ -35,12 +36,11 @@ def load_sheet(sheet_id):
         st.error(f"❌ Error al intentar leer Google Sheet: {e}")
         return pd.DataFrame()
 
-# ---- LOGIN ----
+# Login control
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
-    # Layout centrado estilo pop-up
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown("<h1 style='text-align: center;'>π Bienvenido a Pi DB v3</h1>", unsafe_allow_html=True)
@@ -57,7 +57,7 @@ if not st.session_state.logged_in:
                         st.error("❌ Credenciales incorrectas")
     st.stop()
 
-# ---- APP BODY ----
+# App body
 st.sidebar.title("Navegación")
 programa = st.sidebar.radio("Selecciona el programa:", ["PharmD", "PhD"], key="programa")
 df = load_sheet(SHEET_IDS[programa])
@@ -84,13 +84,13 @@ codigos = sorted(df["Codificación"].dropna().unique().tolist())
 titulos = sorted(df["TítuloCompletoEspañol"].dropna().unique().tolist())
 
 st.sidebar.markdown("#### Seleccionar código:")
-cod_sel = st.sidebar.selectbox("Seleccionar código:", codigos, index=codigos.index(st.session_state["cod_sel"]) if st.session_state["cod_sel"] in codigos else 0, key="cod_sel")
+st.sidebar.selectbox("Seleccionar código:", codigos, index=codigos.index(st.session_state["cod_sel"]) if st.session_state["cod_sel"] in codigos else 0, key="cod_sel")
 
 st.sidebar.markdown("#### Título del curso:")
-tit_sel = st.sidebar.selectbox("Título del curso:", titulos, index=titulos.index(st.session_state["tit_sel"]) if st.session_state["tit_sel"] in titulos else 0, key="tit_sel")
+st.sidebar.selectbox("Título del curso:", titulos, index=titulos.index(st.session_state["tit_sel"]) if st.session_state["tit_sel"] in titulos else 0, key="tit_sel")
 
 st.sidebar.markdown("#### Palabra clave:")
-clave_sel = st.sidebar.text_input("Palabra clave:", value=st.session_state["clave_sel"], key="clave_sel")
+st.sidebar.text_input("Palabra clave:", value=st.session_state["clave_sel"], key="clave_sel")
 
 df_filtrado = df.copy()
 if st.session_state["cod_sel"]:
@@ -102,28 +102,26 @@ elif st.session_state["clave_sel"]:
 
 curso = df_filtrado.iloc[0] if not df_filtrado.empty else df.iloc[0]
 
-# ---- MAIN DISPLAY ----
 st.markdown("<h1 style='text-align: center;'>Bienvenido a Pi DB v3</h1>", unsafe_allow_html=True)
 st.markdown(f"<h2 style='text-align: center;'>📚 Base de Datos de Cursos ({programa})</h2>", unsafe_allow_html=True)
 st.markdown("---")
 
-# Detalle del curso
-st.markdown(f"""
-<div style="font-size: 18px;">
-<b>Codificación:</b> {curso['Codificación']}<br>
-<b>Estado:</b> {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}<br><br>
-<b>Título (ES):</b> {curso['TítuloCompletoEspañol']}<br>
-<b>Título (EN):</b> {curso['TítuloCompletoInglés']}<br><br>
-<b>Créditos:</b> {curso['Créditos']}<br>
-<b>Horas Contacto:</b> {curso['HorasContacto']}<br><br>
-<b>Año:</b> {curso['Año']}<br>
-<b>Semestre:</b> {curso['Semestre']}<br><br>
-<b>Fecha Revisión:</b> {curso['FechaUltimaRevisión']}<br>
-</div>
-""", unsafe_allow_html=True)
-
-# Descripción y comentarios
 col1, col2 = st.columns([1, 2])
+with col1:
+    st.markdown(f"""
+    <div style="font-size: 18px; line-height: 1.8;">
+    <b>Codificación:</b> {curso['Codificación']}<br>
+    <b>Estado:</b> {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}<br>
+    <b>Título (ES):</b> {curso['TítuloCompletoEspañol']}<br>
+    <b>Título (EN):</b> {curso['TítuloCompletoInglés']}<br>
+    <b>Créditos:</b> {curso['Créditos']}<br>
+    <b>Horas Contacto:</b> {curso['HorasContacto']}<br>
+    <b>Año:</b> {curso['Año']}<br>
+    <b>Semestre:</b> {curso['Semestre']}<br>
+    <b>Fecha Revisión:</b> {curso['FechaUltimaRevisión']}<br>
+    </div>
+    """, unsafe_allow_html=True)
+
 with col2:
     st.markdown("### 📝 Descripción del Curso")
     st.text_area("", value=curso["Descripción"], height=220)
@@ -131,7 +129,6 @@ with col2:
     st.markdown("### 🗒️ Comentarios")
     st.text_area("", value=curso["Comentarios"], height=180)
 
-# Archivos
 st.markdown("---")
 st.subheader("📎 Archivos disponibles (Drive)")
 st.markdown("Consulta los documentos específicos del curso en su subcarpeta dedicada:")
