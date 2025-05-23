@@ -35,40 +35,39 @@ def load_sheet(sheet_id):
         st.error(f"❌ Error al intentar leer Google Sheet: {e}")
         return pd.DataFrame()
 
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+# Initialize session state
+for key in ["logged_in", "cod_sel", "tit_sel", "clave_sel"]:
+    if key not in st.session_state:
+        st.session_state[key] = False if key == "logged_in" else ""
 
+# Login screen
 if not st.session_state.logged_in:
-    col1, col2 = st.columns([1, 10])
-    with col1:
-        st.markdown('<p style="font-size: 60px; margin-top: 15px;">π</p>', unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 6, 1])
     with col2:
-        st.title("Bienvenido a Pi DB v3")
-    st.markdown("---")
+        st.markdown("<h1 style='text-align:center;'>π Bienvenido a Pi DB v3</h1>", unsafe_allow_html=True)
+        st.markdown("---")
+        with st.container():
+            with st.form("login"):
+                user = st.text_input("Usuario:")
+                password = st.text_input("Contraseña:", type="password")
+                if st.form_submit_button("Ingresar"):
+                    if user == "j" and password == "1":
+                        st.session_state.logged_in = True
+                        st.rerun()
+                    else:
+                        st.error("❌ Credenciales incorrectas")
+    col1.image("logo RCM.jpg", width=100)
+    col3.image("Farmacia 110 ESP.png", width=150)
 
-    with st.form("login"):
-        st.write("")
-        user = st.text_input("Usuario:")
-        password = st.text_input("Contraseña:", type="password")
-        if st.form_submit_button("Ingresar"):
-            if user == "j" and password == "1":
-                st.session_state.logged_in = True
-                st.rerun()
-            else:
-                st.error("❌ Credenciales incorrectas")
+# Main interface
 else:
     st.sidebar.title("Navegación")
     programa = st.sidebar.radio("Selecciona el programa:", ["PharmD", "PhD"], key="programa")
-
     df = load_sheet(SHEET_IDS[programa])
     df_links = load_sheet(DRIVE_LINK_SHEET_ID)
 
     if df.empty or df_links.empty:
         st.stop()
-
-    for key in ["cod_sel", "tit_sel", "clave_sel"]:
-        if key not in st.session_state:
-            st.session_state[key] = ""
 
     st.sidebar.markdown("---")
     st.sidebar.markdown("### Filtros de búsqueda")
@@ -84,23 +83,13 @@ else:
     titulos = sorted(df["TítuloCompletoEspañol"].dropna().unique().tolist())
 
     st.sidebar.markdown("#### Seleccionar código:")
-    st.session_state["cod_sel"] = st.sidebar.selectbox(
-        "Seleccionar código:", codigos,
-        index=codigos.index(st.session_state["cod_sel"]) if st.session_state["cod_sel"] in codigos else 0,
-        key="cod_sel"
-    )
+    cod_sel = st.sidebar.selectbox("Seleccionar código:", codigos, index=codigos.index(st.session_state["cod_sel"]) if st.session_state["cod_sel"] in codigos else 0, key="cod_sel")
 
     st.sidebar.markdown("#### Título del curso:")
-    st.session_state["tit_sel"] = st.sidebar.selectbox(
-        "Título del curso:", titulos,
-        index=titulos.index(st.session_state["tit_sel"]) if st.session_state["tit_sel"] in titulos else 0,
-        key="tit_sel"
-    )
+    tit_sel = st.sidebar.selectbox("Título del curso:", titulos, index=titulos.index(st.session_state["tit_sel"]) if st.session_state["tit_sel"] in titulos else 0, key="tit_sel")
 
     st.sidebar.markdown("#### Palabra clave:")
-    st.session_state["clave_sel"] = st.sidebar.text_input(
-        "Palabra clave:", value=st.session_state["clave_sel"], key="clave_sel"
-    )
+    clave_sel = st.sidebar.text_input("Palabra clave:", value=st.session_state["clave_sel"], key="clave_sel")
 
     df_filtrado = df.copy()
     if st.session_state["cod_sel"]:
@@ -112,32 +101,29 @@ else:
 
     curso = df_filtrado.iloc[0] if not df_filtrado.empty else df.iloc[0]
 
-    st.title("Bienvenido a Pi DB v3")
+    st.markdown(f"<h1 style='text-align:center;'>Bienvenido a Pi DB v3</h1>", unsafe_allow_html=True)
     st.markdown("---")
-    st.markdown(f"### 📚 Base de Datos de Cursos ({programa})")
+    st.markdown(f"## 📚 Base de Datos de Cursos ({programa})")
 
-    col_info, col_text = st.columns([2, 5])
-    with col_info:
-        st.markdown(f"""
-        <div style="font-size:18px; line-height: 1.8;">
-        <b>Codificación:</b> {curso['Codificación']}<br>
-        <b>Estado:</b> {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}<br>
-        <b>Título (ES):</b> {curso['TítuloCompletoEspañol']}<br>
-        <b>Título (EN):</b> {curso['TítuloCompletoInglés']}<br>
-        <b>Créditos:</b> {curso['Créditos']}<br>
-        <b>Horas Contacto:</b> {curso['HorasContacto']}<br>
-        <b>Año:</b> {curso['Año']}<br>
-        <b>Semestre:</b> {curso['Semestre']}<br>
-        <b>Fecha Revisión:</b> {curso['FechaUltimaRevisión']}
-        </div>
-        """, unsafe_allow_html=True)
+    st.markdown(f"""
+    <div style="font-size:18px;">
+    <b>Codificación:</b> {curso['Codificación']}<br>
+    <b>Estado:</b> {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}<br>
+    <b>Título (ES):</b> {curso['TítuloCompletoEspañol']}<br>
+    <b>Título (EN):</b> {curso['TítuloCompletoInglés']}<br>
+    <b>Créditos:</b> {curso['Créditos']}<br>
+    <b>Horas Contacto:</b> {curso['HorasContacto']}<br>
+    <b>Año:</b> {curso['Año']}<br>
+    <b>Semestre:</b> {curso['Semestre']}<br>
+    <b>Fecha Revisión:</b> {curso['FechaUltimaRevisión']}<br>
+    </div>
+    """, unsafe_allow_html=True)
 
-    with col_text:
-        st.markdown("### 📝 Descripción del Curso")
-        st.text_area("", value=curso["Descripción"], height=200)
+    st.markdown("### 📝 Descripción del Curso")
+    st.text_area("", value=curso["Descripción"], height=200)
 
-        st.markdown("### 💬 Comentarios")
-        st.text_area("", value=curso["Comentarios"], height=180)
+    st.markdown("### 🗒️ Comentarios")
+    st.text_area("", value=curso["Comentarios"], height=180)
 
     st.markdown("---")
     st.subheader("📎 Archivos disponibles (Drive)")
