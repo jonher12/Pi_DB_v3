@@ -39,11 +39,17 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
-    st.title("📘 Bienvenido a Pi DB v3")
-    with st.form("login"):
-        user = st.text_input("Usuario:")
-        password = st.text_input("Contraseña:", type="password")
-        if st.form_submit_button("Ingresar"):
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Books-aj.svg_aj_ashton_01.svg/1024px-Books-aj.svg_aj_ashton_01.svg.png", width=60)
+        st.title("Bienvenido a Pi DB v3")
+        with st.form("login"):
+            st.markdown("<div style='background-color: #f9f9f9; padding: 2em; border-radius: 10px;'>", unsafe_allow_html=True)
+            user = st.text_input("Usuario:")
+            password = st.text_input("Contraseña:", type="password")
+            login = st.form_submit_button("Ingresar")
+            st.markdown("</div>", unsafe_allow_html=True)
+        if login:
             if user == "j" and password == "1":
                 st.session_state.logged_in = True
                 st.rerun()
@@ -76,10 +82,10 @@ else:
     titulos = sorted(df["TítuloCompletoEspañol"].dropna().unique().tolist())
 
     st.sidebar.markdown("#### Seleccionar código:")
-    cod_sel = st.sidebar.selectbox("Seleccionar código:", [""] + codigos, index=0 if not st.session_state["cod_sel"] else codigos.index(st.session_state["cod_sel"]) + 1, key="cod_sel")
+    cod_sel = st.sidebar.selectbox("Seleccionar código:", codigos, index=codigos.index(st.session_state["cod_sel"]) if st.session_state["cod_sel"] in codigos else 0, key="cod_sel")
 
     st.sidebar.markdown("#### Título del curso:")
-    tit_sel = st.sidebar.selectbox("Título del curso:", [""] + titulos, index=0 if not st.session_state["tit_sel"] else titulos.index(st.session_state["tit_sel"]) + 1, key="tit_sel")
+    tit_sel = st.sidebar.selectbox("Título del curso:", titulos, index=titulos.index(st.session_state["tit_sel"]) if st.session_state["tit_sel"] in titulos else 0, key="tit_sel")
 
     st.sidebar.markdown("#### Palabra clave:")
     clave_sel = st.sidebar.text_input("Palabra clave:", value=st.session_state["clave_sel"], key="clave_sel")
@@ -94,31 +100,38 @@ else:
 
     curso = df_filtrado.iloc[0] if not df_filtrado.empty else df.iloc[0]
 
-    st.markdown("<h1 style='text-align:center;'>Bienvenido a Pi DB v3</h1>", unsafe_allow_html=True)
-    st.markdown(f"<h2 style='text-align:center;'>📃 Base de Datos de Cursos ({programa})</h2>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center;'>Bienvenido a Pi DB v3</h1>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='text-align: center;'>📚 Base de Datos de Cursos ({programa})</h2>", unsafe_allow_html=True)
 
-    col1, col2 = st.columns([1.3, 2])
+    if curso is None:
+        st.warning("No se encontraron cursos que coincidan con los filtros seleccionados.")
+        st.stop()
+
+    col1, col2 = st.columns([2, 3])
+
     with col1:
         st.markdown(f"""
-        <div style='font-size:18px'>
-        <b>Codificación:</b> {curso['Codificación']} &nbsp;&nbsp;&nbsp; <b>Estado:</b> {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}<br>
+        <div style='font-size: 18px;'>
+        <b>Codificación:</b> {curso['Codificación']}<br>
+        <b>Estado:</b> {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}<br>
         <b>Título (ES):</b> {curso['TítuloCompletoEspañol']}<br>
         <b>Título (EN):</b> {curso['TítuloCompletoInglés']}<br>
-        <b>Créditos:</b> {curso['Créditos']} &nbsp;&nbsp;&nbsp; <b>Horas Contacto:</b> {curso['HorasContacto']}<br>
-        <b>Año:</b> {curso['Año']} &nbsp;&nbsp;&nbsp; <b>Semestre:</b> {curso['Semestre']}<br>
-        <b>Fecha Revisión:</b> {curso['FechaUltimaRevisión']}
+        <b>Créditos:</b> {curso['Créditos']}<br>
+        <b>Horas Contacto:</b> {curso['HorasContacto']}<br>
+        <b>Año:</b> {curso['Año']}<br>
+        <b>Semestre:</b> {curso['Semestre']}<br>
+        <b>Fecha Revisión:</b> {curso['FechaUltimaRevisión']}<br>
         </div>
         """, unsafe_allow_html=True)
 
     with col2:
-        st.markdown("### 📜 Descripción del Curso")
+        st.subheader("📄 Descripción del Curso")
         st.text_area("", value=curso["Descripción"], height=250)
-
-        st.markdown("### 📄 Comentarios")
+        st.subheader("📑 Comentarios")
         st.text_area("", value=curso["Comentarios"], height=250)
 
     st.markdown("---")
-    st.subheader("📌 Archivos disponibles (Drive)")
+    st.subheader("📎 Archivos disponibles (Drive)")
     st.markdown("Consulta los documentos específicos del curso en su subcarpeta dedicada:")
 
     folder_row = df_links[(df_links["Codificación"] == curso['Codificación']) & (df_links["Programa"] == programa)]
