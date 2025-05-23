@@ -66,7 +66,6 @@ else:
     st.sidebar.markdown("### Filtros de búsqueda")
     st.sidebar.caption("ℹ️ Para utilizar un filtro diferente, primero pulsa 'Limpiar Filtro'.")
 
-    # Botón general
     if st.sidebar.button("🔄 Limpiar todos los filtros", key="btn_clear_all"):
         st.session_state.update({"cod_sel": "", "tit_sel": "", "clave_sel": ""})
         st.rerun()
