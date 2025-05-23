@@ -23,11 +23,8 @@ def load_sheet(sheet_id):
         if response.status != 200:
             st.error(f"❌ No se pudo acceder al Google Sheet. Código: {response.status}")
             return pd.DataFrame()
-        df = pd.read_csv(url, dtype=str)  # Leer todo como texto
-        for col in ["Créditos", "HorasContacto", "Año", "Semestre"]:
-            if col in df.columns:
-                df[col] = df[col].fillna("").astype(str).str.strip()
-        return df
+        df = pd.read_csv(url, dtype=str)
+        return df.fillna("")
     except Exception as e:
         st.error(f"❌ Error al intentar leer Google Sheet: {e}")
         return pd.DataFrame()
@@ -73,21 +70,23 @@ else:
     titulos = sorted(df["TítuloCompletoEspañol"].dropna().unique())
 
     st.sidebar.markdown("#### Seleccionar código:")
-    st.sidebar.selectbox("Seleccionar código:", [""] + codigos, index=0, key="cod_sel")
-    if st.sidebar.button("Limpiar Filtro", key="clear_cod"):
-        st.session_state["cod_sel"] = ""
+    cod_index = codigos.index(st.session_state.cod_sel) if st.session_state.cod_sel in codigos else 0
+    cod_sel = st.sidebar.selectbox("Seleccionar código:", codigos, index=cod_index, key="cod_sel")
+    if st.sidebar.button("Limpiar Filtro", key="btn_clear_cod"):
+        st.session_state.cod_sel = ""
         st.rerun()
 
     st.sidebar.markdown("#### Título del curso:")
-    st.sidebar.selectbox("Título del curso:", [""] + titulos, index=0, key="tit_sel")
-    if st.sidebar.button("Limpiar Filtro", key="clear_tit"):
-        st.session_state["tit_sel"] = ""
+    tit_index = titulos.index(st.session_state.tit_sel) if st.session_state.tit_sel in titulos else 0
+    tit_sel = st.sidebar.selectbox("Título del curso:", titulos, index=tit_index, key="tit_sel")
+    if st.sidebar.button("Limpiar Filtro", key="btn_clear_tit"):
+        st.session_state.tit_sel = ""
         st.rerun()
 
     st.sidebar.markdown("#### Palabra clave:")
-    st.sidebar.text_input("Palabra clave:", value=st.session_state["clave_sel"], key="clave_sel")
-    if st.sidebar.button("Limpiar Filtro", key="clear_key"):
-        st.session_state["clave_sel"] = ""
+    clave_sel = st.sidebar.text_input("Palabra clave:", value=st.session_state["clave_sel"], key="clave_sel")
+    if st.sidebar.button("Limpiar Filtro", key="btn_clear_key"):
+        st.session_state.clave_sel = ""
         st.rerun()
 
     df_filtrado = df.copy()
@@ -101,7 +100,7 @@ else:
     curso = df_filtrado.iloc[0] if not df_filtrado.empty else df.iloc[0]
 
     st.title("📘 Bienvenido a Pi DB v3")
-    st.header(f"📃 Base de Datos de Cursos ({programa})")
+    st.header(f"📚 Base de Datos de Cursos ({programa})")
 
     if curso is None:
         st.warning("No se encontraron cursos que coincidan con los filtros seleccionados.")
@@ -117,10 +116,10 @@ else:
     """, unsafe_allow_html=True)
 
     st.text_area("📄 Descripción del Curso", value=curso["Descripción"], height=150)
-    st.text_area("📁 Comentarios", value=curso["Comentarios"], height=150)
+    st.text_area("📑 Comentarios", value=curso["Comentarios"], height=150)
 
     st.markdown("---")
-    st.subheader("📌 Archivos disponibles (Drive)")
+    st.subheader("📎 Archivos disponibles (Drive)")
     st.markdown("Consulta los documentos específicos del curso en su subcarpeta dedicada:")
 
     folder_row = df_links[(df_links["Codificación"] == curso['Codificación']) & (df_links["Programa"] == programa)]
