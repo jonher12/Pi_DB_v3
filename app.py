@@ -156,7 +156,7 @@ with col1:
 
     # Archivos disponibles justo después de los detalles
     st.markdown("#### 📎 Upload & Download de Documentos")
-    st.markdown("Consulta los documentos específicos del curso en su archivo individual. Puedes subir y descargar documentos desde este archivo.")
+    st.markdown("Consulta los documentos específicos del curso en su archivo individual. Puedes subir y descargar documentos desde este archivo haciendo Click en el siguiente enlace:")
 
     folder_row = df_links[(df_links["Codificación"] == curso['Codificación']) & (df_links["Programa"] == programa)]
     if not folder_row.empty:
