@@ -1,126 +1,107 @@
 import streamlit as st
 import pandas as pd
-import urllib.request
+import requests
 
-st.set_page_config(page_title="📘 Pi DB v3", layout="wide")
+# --- CONFIGURACION DE LA PAGINA ---
+st.set_page_config(page_title="Pi DB v3", layout="wide")
 
-SHEET_IDS = {
-    "PharmD": st.secrets["SHEET_ID_PHARMD"].strip(),
-    "PhD": st.secrets["SHEET_ID_PHD"].strip()
-}
-
-FOLDER_LINKS = {
-    "PharmD": st.secrets["FOLDER_LINK_PHARMD"],
-    "PhD": st.secrets["FOLDER_LINK_PHD"]
-}
-
-DRIVE_LINK_SHEET_ID = st.secrets["DRIVE_LINK_SHEET_ID"].strip()
-
-def load_sheet(sheet_id):
+# --- FUNCIONES AUXILIARES ---
+def cargar_sheet(sheet_id):
     url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
-    try:
-        response = urllib.request.urlopen(url)
-        if response.status != 200:
-            st.error(f"❌ No se pudo acceder al Google Sheet. Código: {response.status}")
-            return pd.DataFrame()
-        df = pd.read_csv(url)
-        for col in ["Créditos", "HorasContacto", "Año", "Semestre"]:
-            if col in df.columns:
-                df[col] = df[col].fillna(0).astype(int)
-        return df
-    except Exception as e:
-        st.error(f"❌ Error al intentar leer Google Sheet: {e}")
-        return pd.DataFrame()
+    return pd.read_csv(url)
 
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+# --- CARGA DE DATOS ---
+SHEET_ID_PHARMD = st.secrets["SHEET_ID_PHARMD"]
+SHEET_ID_PHD = st.secrets["SHEET_ID_PHD"]
+DRIVE_LINKS_ID = st.secrets["DRIVE_LINK_SHEET_ID"]
 
-if not st.session_state.logged_in:
-    st.title("📘 Bienvenido a Pi DB v3")
-    with st.form("login"):
-        user = st.text_input("Usuario:")
-        password = st.text_input("Contraseña:", type="password")
-        if st.form_submit_button("Ingresar"):
-            if user == "j" and password == "1":
-                st.session_state.logged_in = True
-                st.rerun()
-            else:
-                st.error("❌ Credenciales incorrectas")
-else:
-    st.sidebar.title("Navegación")
-    programa = st.sidebar.radio("Selecciona el programa:", ["PharmD", "PhD"], key="programa")
-    df = load_sheet(SHEET_IDS[programa])
-    df_links = load_sheet(DRIVE_LINK_SHEET_ID)
+df_pharmd = cargar_sheet(SHEET_ID_PHARMD)
+df_phd = cargar_sheet(SHEET_ID_PHD)
+df_links = cargar_sheet(DRIVE_LINKS_ID)
 
-    if df.empty or df_links.empty:
-        st.stop()
+# --- BARRA LATERAL: SELECCION DE PROGRAMA ---
+st.sidebar.title("Navegación")
+programa = st.sidebar.radio("Selecciona el programa:", ["PharmD", "PhD"])
 
-    for key in ["cod_sel", "tit_sel", "clave_sel"]:
-        if key not in st.session_state:
-            st.session_state[key] = ""
+df = df_pharmd if programa == "PharmD" else df_phd
+folder_base = st.secrets["FOLDER_LINK_PHARMD"] if programa == "PharmD" else st.secrets["FOLDER_LINK_PHD"]
 
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("### Filtros de búsqueda")
-    st.sidebar.caption("ℹ️ Para utilizar un filtro diferente, primero pulsa 'Limpiar filtros'.")
+# --- FILTROS Y ESTADO ---
+st.sidebar.markdown("---")
+st.sidebar.subheader("Filtros de búsqueda")
 
-    if st.sidebar.button("🔄 Limpiar todos los filtros") or st.sidebar.button("Limpiar Filtro código") or st.sidebar.button("Limpiar Filtro título"):
-        st.session_state["cod_sel"] = ""
-        st.session_state["tit_sel"] = ""
-        st.session_state["clave_sel"] = ""
-        st.rerun()
+# Inicializar estado si no existe
+for key in ["cod_sel", "tit_sel", "clave"]:
+    if key not in st.session_state:
+        st.session_state[key] = ""
 
-    codigos = sorted(df["Codificación"].dropna().unique())
-    titulos = sorted(df["TítuloCompletoEspañol"].dropna().unique())
+# Opciones para los selectbox
+codigos = df["Codificación"].dropna().unique().tolist()
+titulos = df["TítuloCompletoEspañol"].dropna().unique().tolist()
 
-    st.sidebar.markdown("#### Seleccionar código:")
-    cod_sel = st.sidebar.selectbox("", [""] + codigos, index=0, key="cod_sel")
+# --- FILTRO: CODIGO ---
+cod_sel = st.sidebar.selectbox("Seleccionar código:", [""] + codigos, index=([""] + codigos).index(st.session_state.cod_sel) if st.session_state.cod_sel in codigos else 0, key="cod_sel")
+if st.sidebar.button("Limpiar Filtro", key="clear_cod"):
+    st.session_state.cod_sel = ""
+    st.rerun()
 
-    st.sidebar.markdown("#### Título del curso:")
-    tit_sel = st.sidebar.selectbox("", [""] + titulos, index=0, key="tit_sel")
+# --- FILTRO: TITULO ---
+tit_sel = st.sidebar.selectbox("Título del curso:", [""] + titulos, index=([""] + titulos).index(st.session_state.tit_sel) if st.session_state.tit_sel in titulos else 0, key="tit_sel")
+if st.sidebar.button("Limpiar Filtro", key="clear_tit"):
+    st.session_state.tit_sel = ""
+    st.rerun()
 
-    st.sidebar.markdown("#### Palabra clave:")
-    clave_sel = st.sidebar.text_input("", value=st.session_state["clave_sel"], key="clave_sel")
+# --- FILTRO: PALABRA CLAVE ---
+clave = st.sidebar.text_input("Palabra clave:", value=st.session_state.clave, key="clave")
+if st.sidebar.button("Limpiar Filtro", key="clear_clave"):
+    st.session_state.clave = ""
+    st.rerun()
 
-    df_filtrado = df.copy()
-    if st.session_state["cod_sel"]:
-        df_filtrado = df[df["Codificación"] == st.session_state["cod_sel"]]
-    elif st.session_state["tit_sel"]:
-        df_filtrado = df[df["TítuloCompletoEspañol"] == st.session_state["tit_sel"]]
-    elif st.session_state["clave_sel"]:
-        df_filtrado = df[df.apply(lambda row: st.session_state["clave_sel"].lower() in str(row).lower(), axis=1)]
+# --- FILTRADO ---
+df_filtrado = df.copy()
+if st.session_state.cod_sel:
+    df_filtrado = df_filtrado[df_filtrado["Codificación"] == st.session_state.cod_sel]
+elif st.session_state.tit_sel:
+    df_filtrado = df_filtrado[df_filtrado["TítuloCompletoEspañol"] == st.session_state.tit_sel]
+elif st.session_state.clave:
+    palabra = st.session_state.clave.lower()
+    df_filtrado = df_filtrado[df_filtrado.apply(lambda row: palabra in str(row).lower(), axis=1)]
 
-    curso = df_filtrado.iloc[0] if not df_filtrado.empty else df.iloc[0]
+# --- UI PRINCIPAL ---
+st.title("📘 Bienvenido a Pi DB v3")
+st.header(f"📚 Base de Datos de Cursos ({programa})")
 
-    st.title("📘 Bienvenido a Pi DB v3")
-    st.header(f"📚 Base de Datos de Cursos ({programa})")
+if not df_filtrado.empty:
+    curso = df_filtrado.iloc[0]
+    cod = curso["Codificación"]
 
-    if curso is None:
-        st.warning("No se encontraron cursos que coincidan con los filtros seleccionados.")
-        st.stop()
+    st.subheader(f"Selecciona un curso: {cod}")
+    st.markdown(f"**Codificación:** {cod}  **Estado:** {'Activo' if curso['Estatus'] else 'Inactivo'}")
+    st.markdown(f"**Título (ES):** {curso['TítuloCompletoEspañol']}")
+    st.markdown(f"**Título (EN):** {curso['TítuloCompletoInglés']}")
 
-    st.markdown(f"""
-    **Codificación:** {curso['Codificación']} &nbsp;&nbsp;&nbsp; **Estado:** {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}  
-    **Título (ES):** {curso['TítuloCompletoEspañol']}  
-    **Título (EN):** {curso['TítuloCompletoInglés']}  
-    **Créditos:** {curso['Créditos']} &nbsp;&nbsp;&nbsp; **Horas Contacto:** {curso['HorasContacto']}  
-    **Año:** {curso['Año']} &nbsp;&nbsp;&nbsp; **Semestre:** {curso['Semestre']}  
-    **Fecha Revisión:** {curso['FechaUltimaRevisión']}
-    """, unsafe_allow_html=True)
+    st.markdown(f"**Créditos:** {int(curso['Créditos'])}  **Horas Contacto:** {int(curso['HorasContacto'])}")
+    st.markdown(f"**Año:** {int(curso['Año'])}  **Semestre:** {int(curso['Semestre'])}")
+    st.markdown(f"**Fecha Revisión:** {curso['FechaUltimaRevisión']}")
 
-    st.text_area("📄 Descripción del Curso", value=curso["Descripción"], height=150)
-    st.text_area("📑 Comentarios", value=curso["Comentarios"], height=150)
+    st.markdown("---")
+    st.subheader("📄 Descripción del Curso")
+    st.info(curso["Descripción"])
+
+    st.markdown("---")
+    st.subheader("📝 Comentarios")
+    st.code(curso["Comentarios"], language="text")
 
     st.markdown("---")
     st.subheader("📎 Archivos disponibles (Drive)")
-    st.markdown("Consulta los documentos específicos del curso en su subcarpeta dedicada:")
 
-    folder_row = df_links[(df_links["Codificación"] == curso['Codificación']) & (df_links["Programa"] == programa)]
+    link_folder = folder_base
+    folder_row = df_links[df_links["Codificación"] == cod]
     if not folder_row.empty:
-        folder_id = folder_row.iloc[0]["FolderID"]
-        subfolder_url = f"https://drive.google.com/drive/folders/{folder_id}"
-        st.markdown(f"[📂 Abrir carpeta del curso {curso['Codificación']}]({subfolder_url})")
+        folder_code = folder_row.iloc[0]["Link"]
+        st.markdown(f"📁 [Abrir carpeta del curso]({folder_code})")
+        st.markdown("_Sugerencia: busca el subfolder llamado **{cod}** en esa carpeta para ver los documentos._")
     else:
-        st.warning("⚠️ No se encontró el enlace directo para este curso.")
-
-    st.markdown("---")
-    st.caption(f"📁 Carpeta general de {programa}: {FOLDER_LINKS[programa]}")
+        st.warning("No se encontró carpeta compartida para este curso.")
+else:
+    st.warning("No se encontraron cursos que coincidan con los filtros seleccionados.")
