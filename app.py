@@ -93,8 +93,18 @@ else:
         st.stop()
 
     codigos_filtrados = sorted(df_filtrado["Codificación"].dropna().unique())
-    curso_sel = st.sidebar.selectbox("Seleccione un curso:", codigos_filtrados, key="curso_seleccionado")
-    curso = df_filtrado[df_filtrado["Codificación"] == curso_sel].iloc[0]
+    curso_sel = st.sidebar.selectbox("Seleccione un curso:", [""] + codigos_filtrados, key="curso_seleccionado")
+
+    if not curso_sel:
+        st.info("Selecciona un curso para ver su información.")
+        st.stop()
+
+    curso_data = df_filtrado[df_filtrado["Codificación"] == curso_sel]
+    if curso_data.empty:
+        st.warning("El curso seleccionado no se encuentra en el subconjunto actual.")
+        st.stop()
+
+    curso = curso_data.iloc[0]
 
     st.markdown(f"""
     **Codificación:** {curso['Codificación']} &nbsp;&nbsp;&nbsp; **Estado:** {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}  
