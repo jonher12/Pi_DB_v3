@@ -58,6 +58,7 @@ else:
 
     st.sidebar.markdown("---")
     st.sidebar.markdown("### Filtros de búsqueda")
+    st.sidebar.caption("ℹ️ Para utilizar un filtro diferente, primero pulsa 'Limpiar filtros'.")
 
     codigos = sorted(df["Codificación"].dropna().unique().tolist())
     titulos = sorted(df["TítuloCompletoEspañol"].dropna().unique().tolist())
