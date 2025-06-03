@@ -41,7 +41,7 @@ if "logged_in" not in st.session_state:
 
 if not st.session_state.logged_in:
     # Encabezado con logos
-    empty_col, col1, col2, col3 = st.columns([0.5, 1, 2, 1])
+    spacer, col1, col2, col3 = st.columns([1, 1, 2, 1])  # Mueve más a la derecha el logo RCM
     
     with col1:
         st.image("logo_rcm.png", width=120)
