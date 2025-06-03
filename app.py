@@ -194,7 +194,7 @@ for key in ["cod_sel", "tit_sel", "clave_sel"]:
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### Filtros de Búsqueda")
-st.sidebar.caption("ℹ️ Para utilizar un filtro diferente, primero pulsa 'Limpiar Filtros'.")
+st.sidebar.markdown("<span style='color: red; font-weight: bold;'>ℹ️ Para utilizar un filtro diferente, primero pulsa 'Limpiar Filtros'.</span>", unsafe_allow_html=True)
 
 if st.sidebar.button("🔄 Limpiar Filtros", key="btn_clear_all"):
     st.session_state["cod_sel"] = ""
