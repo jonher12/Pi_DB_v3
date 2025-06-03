@@ -39,10 +39,20 @@ def verify_login(username, input_password):
     sheet = connect_sheet(st.secrets["USERS_SHEET_ID"])
     records = sheet.get_all_records()
     input_hash = hash_password(input_password)
-    for row in records:
-        if row["Username"] == username and row["Password"] == input_hash:
-            st.session_state["user_role"] = row.get("Role", "user")
-            return True
+    for i, row in enumerate(records):
+        if row["Username"] == username:
+            stored_pw = row["Password"]
+            if stored_pw == input_password:
+                # Contraseña en texto plano → actualizar a hash
+                sheet.update_cell(i + 2, 2, input_hash)
+                st.info("🔐 Tu contraseña fue protegida automáticamente.")
+                st.session_state["user_role"] = row.get("Role", "user")
+                return True
+            elif stored_pw == input_hash:
+                st.session_state["user_role"] = row.get("Role", "user")
+                return True
+            else:
+                return False
     return False
 
 def update_password(username, new_password):
@@ -147,6 +157,7 @@ if not st.session_state.logged_in:
                 "</div>",
                 unsafe_allow_html=True
             )
+
     st.stop()
 
 # App body
