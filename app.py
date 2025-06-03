@@ -90,29 +90,25 @@ def load_sheet(sheet_id):
 
 def update_course_field(sheet_id, cod, column_name, new_value):
     try:
-        sheet_name = "tblMaster" if programa == "PharmD" else "tblMasterPhD"
-        sheet = connect_worksheet(sheet_id, sheet_name)
+        worksheet_name = "tblMaster" if programa == "PharmD" else "tblMasterPhD"
+        sheet = connect_worksheet(sheet_id, worksheet_name)
         data = sheet.get_all_records()
-        headers = sheet.row_values(1)
-        cod_col_index = headers.index("Codificación") + 1
-        target_col_index = headers.index(column_name) + 1
-        mod_by_col_index = headers.index("ÚltimaModificaciónPor") + 1
-        mod_date_col_index = headers.index("FechaÚltimaModificación") + 1
-
+        headers = data[0].keys() if data else sheet.row_values(1)
         for i, row in enumerate(data):
             if row["Codificación"] == cod:
-                row_number = i + 2  # Account for header
-                sheet.update_cell(row_number, target_col_index, new_value)
+                row_num = i + 2
+                col_index = list(headers).index(column_name) + 1
+                sheet.update_cell(row_num, col_index, new_value)
 
-                # Fecha y hora en AST (Puerto Rico)
-                ast = pytz.timezone("America/Puerto_Rico")
-                now_ast = datetime.now(ast).strftime("%Y-%m-%d %H:%M:%S")
+                # Obtener hora actual en AST
+                pr_time = datetime.now(pytz.timezone("America/Puerto_Rico")).strftime("%Y-%m-%d %H:%M:%S")
 
-                # Actualiza también quién y cuándo
-                sheet.update_cell(row_number, mod_by_col_index, st.session_state["username"])
-                sheet.update_cell(row_number, mod_date_col_index, now_ast)
+                # Actualizar columnas de seguimiento
+                mod_col = list(headers).index("ÚltimaModificaciónPor") + 1
+                date_col = list(headers).index("FechaÚltimaModificación") + 1
+                sheet.update_cell(row_num, mod_col, st.session_state["username"])
+                sheet.update_cell(row_num, date_col, pr_time)
 
-                # Log de acción
                 register_log(st.session_state["username"], f"edit: {cod} - {column_name}")
                 break
     except Exception as e:
