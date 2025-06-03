@@ -44,7 +44,7 @@ if not st.session_state.logged_in:
     empty_col, col1, col2, col3 = st.columns([0.5, 1, 2, 1])
     
     with col1:
-        col_logo_spacer, col_logo = st.columns([0.5, 1])  
+        col_logo_spacer, col_logo = st.columns([0.3, 1])  
         with col_logo:
             st.image("logo_rcm.png", width=120)
     
