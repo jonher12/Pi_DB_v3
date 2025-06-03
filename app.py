@@ -86,6 +86,18 @@ def load_sheet(sheet_id):
         st.error(f"❌ Error al intentar leer Google Sheet: {e}")
         return pd.DataFrame()
 
+def update_course_field(sheet_id, cod, column_name, new_value):
+    try:
+        sheet = connect_worksheet(sheet_id, "tblMaster" if programa == "PharmD" else "tblMasterPhD")
+        data = sheet.get_all_records()
+        for i, row in enumerate(data):
+            if row["Codificación"] == cod:
+                col_index = list(row.keys()).index(column_name) + 1
+                sheet.update_cell(i + 2, col_index, new_value)
+                register_log(st.session_state["username"], f"edit: {cod} - {column_name}")
+                break
+    except Exception as e:
+        st.warning(f"⚠️ No se pudo actualizar el curso: {e}")
 
 # ---- LOGIN ----
 if "logged_in" not in st.session_state:
@@ -94,32 +106,14 @@ if "logged_in" not in st.session_state:
 if not st.session_state.logged_in:
     # Encabezado con logos
     empty_col, col1, col2, col3 = st.columns([0.5, 1, 2, 1])
-
     with col1:
-        col_logo_spacer, col_logo = st.columns([0.3, 1])  
-        with col_logo:
-            st.image("logo_rcm.png", width=120)
-
+        st.image("logo_rcm.png", width=120)
     with col2:
-        st.markdown(
-            """
-            <h1 style='
-                margin: 0;
-                padding-top: 10px;
-                font-size: 70px;
-                margin-left: 100px;  
-                text-align: left;
-            '>Bienvenido a Pi v3</h1>
-            """,
-            unsafe_allow_html=True
-        )
-
+        st.markdown("<h1 style='margin-left: 100px; font-size: 70px;'>Bienvenido a Pi v3</h1>", unsafe_allow_html=True)
     with col3:
         st.image("logo_farmacia.png", width=160)
-
     st.markdown("<hr style='margin-top: -10px;'>", unsafe_allow_html=True)
 
-    # Login box centrado
     col_a, col_b, col_c = st.columns([1, 2, 1])
     with col_b:
         with st.container(border=True):
@@ -128,7 +122,6 @@ if not st.session_state.logged_in:
                 user = st.text_input("Usuario:")
                 password = st.text_input("Contraseña:", type="password")
                 login_btn = st.form_submit_button("Ingresar")
-
                 if login_btn:
                     if verify_login(user, password):
                         st.session_state.logged_in = True
@@ -136,13 +129,10 @@ if not st.session_state.logged_in:
                         st.rerun()
                     else:
                         st.error("❌ Usuario o contraseña incorrectos.")
-
             with st.expander("🔑 ¿Olvidaste tu contraseña?"):
-                st.markdown("Ingresa tu usuario y nueva contraseña:")
                 username_reset = st.text_input("Usuario:", key="reset_user")
                 new_pw = st.text_input("Nueva contraseña", type="password", key="new_pw")
                 confirm_pw = st.text_input("Confirmar contraseña", type="password", key="confirm_pw")
-
                 if st.button("Actualizar contraseña"):
                     if not username_reset:
                         st.warning("⚠️ Ingresa tu usuario.")
@@ -153,15 +143,10 @@ if not st.session_state.logged_in:
                             st.success("✅ Contraseña actualizada.")
                         else:
                             st.error("❌ Usuario no encontrado.")
-
-            st.markdown(
-                "<div style='text-align: center; margin-top: 10px;'>"
-                "<small>División de Evaluación de la Efectividad Curricular e Institucional. "
-                "Todos los derechos reservados. JHA 2025©. Administrador: Jonathan Hernández-Agosto, EdD, GCG.</small>"
-                "</div>",
-                unsafe_allow_html=True
-            )
-
+        st.markdown("<div style='text-align: center; margin-top: 10px;'>"
+                    "<small>División de Evaluación de la Efectividad Curricular e Institucional. "
+                    "Todos los derechos reservados. JHA 2025©. Administrador: Jonathan Hernández-Agosto, EdD, GCG.</small></div>",
+                    unsafe_allow_html=True)
     st.stop()
 
 # App body
@@ -206,13 +191,8 @@ if st.sidebar.button("🔄 Limpiar Filtros", key="btn_clear_all"):
 codigos = sorted(df["Codificación"].dropna().unique().tolist())
 titulos = sorted(df["TítuloCompletoEspañol"].dropna().unique().tolist())
 
-st.sidebar.markdown("#### Seleccionar Código:")
 st.sidebar.selectbox("Seleccionar Código:", codigos, index=codigos.index(st.session_state["cod_sel"]) if st.session_state["cod_sel"] in codigos else 0, key="cod_sel")
-
-st.sidebar.markdown("#### Título del Curso:")
 st.sidebar.selectbox("Título del Curso:", titulos, index=titulos.index(st.session_state["tit_sel"]) if st.session_state["tit_sel"] in titulos else 0, key="tit_sel")
-
-st.sidebar.markdown("#### Palabra Clave:")
 st.sidebar.text_input("Palabra Clave:", value=st.session_state["clave_sel"], key="clave_sel")
 
 df_filtrado = df.copy()
@@ -225,11 +205,11 @@ elif st.session_state["clave_sel"]:
 
 curso = df_filtrado.iloc[0] if not df_filtrado.empty else df.iloc[0]
 
-# Registrar vista del curso seleccionado
+# Registrar vista del curso
 if "viewed_course" not in st.session_state or st.session_state["viewed_course"] != curso["Codificación"]:
     register_log(st.session_state["username"], f"view_course: {curso['Codificación']}")
     st.session_state["viewed_course"] = curso["Codificación"]
-    
+
 st.markdown("<h1 style='text-align: center;'>Bienvenido a Pi v3</h1>", unsafe_allow_html=True)
 st.markdown(f"<h2 style='text-align: center;'>📚 Base de Datos de Cursos ({programa})</h2>", unsafe_allow_html=True)
 st.markdown("---")
@@ -251,27 +231,25 @@ with col1:
     </div>
     """, unsafe_allow_html=True)
 
-    # Espacio visual antes de archivos
     st.markdown("<br>", unsafe_allow_html=True)
-
-    # Archivos disponibles justo después de los detalles
     st.markdown("#### 📎 Upload & Download de Documentos")
-    st.markdown("Consulta los documentos específicos del curso en su archivo individual. Puedes subir y descargar documentos desde este archivo haciendo Click en el siguiente enlace:")
-
     folder_row = df_links[(df_links["Codificación"] == curso['Codificación']) & (df_links["Programa"] == programa)]
     if not folder_row.empty:
         folder_id = folder_row.iloc[0]["FolderID"]
-        subfolder_url = f"https://drive.google.com/drive/folders/{folder_id}"
-        st.markdown(f"[📂 Abrir carpeta del curso {curso['Codificación']}]({subfolder_url})")
+        st.markdown(f"[📂 Abrir carpeta del curso {curso['Codificación']}]({f'https://drive.google.com/drive/folders/{folder_id}'})")
     else:
         st.warning("⚠️ No se encontró el enlace directo para este curso.")
 
 with col2:
     st.markdown("### 📝 Descripción del Curso")
-    st.text_area("", value=curso["Descripción"], height=300)
+    descripcion = st.text_area("Descripción", value=curso["Descripción"], height=300)
+    if descripcion != curso["Descripción"]:
+        update_course_field(SHEET_IDS[programa], curso["Codificación"], "Descripción", descripcion)
 
     st.markdown("### 🗒️ Comentarios")
-    st.text_area("", value=curso["Comentarios"], height=300)
+    comentarios = st.text_area("Comentarios", value=curso["Comentarios"], height=300)
+    if comentarios != curso["Comentarios"]:
+        update_course_field(SHEET_IDS[programa], curso["Codificación"], "Comentarios", comentarios)
 
 # Pie de página
 st.markdown("---")
