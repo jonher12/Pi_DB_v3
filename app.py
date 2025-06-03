@@ -88,12 +88,15 @@ def load_sheet(sheet_id):
 
 def update_course_field(sheet_id, cod, column_name, new_value):
     try:
-        sheet = connect_worksheet(sheet_id, "tblMaster" if programa == "PharmD" else "tblMasterPhD")
+        worksheet_name = "tblMaster" if programa == "PharmD" else "tblMasterPhD"
+        sheet = connect_worksheet(sheet_id, worksheet_name)
+        headers = sheet.row_values(1)
+        col_index = headers.index(column_name) + 1  # columnas comienzan en 1
         data = sheet.get_all_records()
+
         for i, row in enumerate(data):
             if row["Codificación"] == cod:
-                col_index = list(row.keys()).index(column_name) + 1
-                sheet.update_cell(i + 2, col_index, new_value)
+                sheet.update_cell(i + 2, col_index, new_value)  # +2 porque headers están en la fila 1
                 register_log(st.session_state["username"], f"edit: {cod} - {column_name}")
                 break
     except Exception as e:
