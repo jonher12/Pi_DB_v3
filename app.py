@@ -47,9 +47,8 @@ if not st.session_state.logged_in:
         st.image("logo_rcm.png", width=120)
     
     with col2:
-        # Solo el título, sin imagen de pi
         st.markdown(
-            "<h1 style='margin: 0; padding-top: 10px; margin-left: -30px;'>Bienvenido a Pi v3</h1>",
+            "<h1 style='text-align: center; font-size: 42px; margin: 0; padding-top: 10px;'>Bienvenido a Pi v3</h1>",
             unsafe_allow_html=True
         )
     
