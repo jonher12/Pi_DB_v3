@@ -200,6 +200,7 @@ if st.sidebar.button("🔄 Limpiar Filtros", key="btn_clear_all"):
     st.session_state["cod_sel"] = ""
     st.session_state["tit_sel"] = ""
     st.session_state["clave_sel"] = ""
+    register_log(st.session_state["username"], "clear_filters")
     st.rerun()
 
 codigos = sorted(df["Codificación"].dropna().unique().tolist())
