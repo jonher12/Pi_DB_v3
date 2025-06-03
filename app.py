@@ -48,7 +48,15 @@ if not st.session_state.logged_in:
     
     with col2:
         st.markdown(
-            "<h1 style='margin: 0; padding-top: 10px; font-size: 50px; text-align: center;'>Bienvenido a Pi v3</h1>",
+            """
+            <h1 style='
+                margin: 0;
+                padding-top: 10px;
+                font-size: 56px;
+                margin-left: -50px;
+                text-align: left;
+            '>Bienvenido a Pi v3</h1>
+            """,
             unsafe_allow_html=True
         )
     
