@@ -119,6 +119,21 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
+# 🎨 Fondo personalizado
+st.markdown("""
+    <style>
+    body {
+        background-color: #f5f1e1; /* beige claro */
+    }
+    .stApp {
+        background-color: #f5f1e1 !important;
+    }
+    .st-cb {
+        background-color: #f5f1e1 !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+    
     # Encabezado con logos
     empty_col, col1, col2, col3 = st.columns([0.8, 0.7, 2, 1])
     with col1:
