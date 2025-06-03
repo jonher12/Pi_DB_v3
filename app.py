@@ -185,11 +185,6 @@ elif st.session_state.get("tit_sel"):
 elif st.session_state.get("clave_sel"):
     register_log(st.session_state["username"], f"search: keyword = {st.session_state['clave_sel']}")
 
-# Registrar vista del curso seleccionado
-if "viewed_course" not in st.session_state or st.session_state["viewed_course"] != curso["Codificación"]:
-    register_log(st.session_state["username"], f"view_course: {curso['Codificación']}")
-    st.session_state["viewed_course"] = curso["Codificación"]
-
 if df.empty or df_links.empty:
     st.stop()
 
@@ -229,6 +224,11 @@ elif st.session_state["clave_sel"]:
 
 curso = df_filtrado.iloc[0] if not df_filtrado.empty else df.iloc[0]
 
+# Registrar vista del curso seleccionado
+if "viewed_course" not in st.session_state or st.session_state["viewed_course"] != curso["Codificación"]:
+    register_log(st.session_state["username"], f"view_course: {curso['Codificación']}")
+    st.session_state["viewed_course"] = curso["Codificación"]
+    
 st.markdown("<h1 style='text-align: center;'>Bienvenido a Pi v3</h1>", unsafe_allow_html=True)
 st.markdown(f"<h2 style='text-align: center;'>📚 Base de Datos de Cursos ({programa})</h2>", unsafe_allow_html=True)
 st.markdown("---")
