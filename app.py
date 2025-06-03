@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
 import urllib.request
+import gspread
+from google.oauth2.service_account import Credentials
+import hashlib
 
 st.set_page_config(page_title="📘 Pi DB v3", layout="wide")
 
@@ -15,6 +18,41 @@ FOLDER_LINKS = {
 }
 
 DRIVE_LINK_SHEET_ID = st.secrets["DRIVE_LINK_SHEET_ID"].strip()
+
+# 🔐 Funciones para autenticación
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def connect_sheet(sheet_id):
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive"
+    ]
+    credentials = Credentials.from_service_account_info(
+        st.secrets["google_service_account"],
+        scopes=scopes
+    )
+    client = gspread.authorize(credentials)
+    return client.open_by_key(sheet_id).worksheet("users")
+
+def verify_login(username, input_password):
+    sheet = connect_sheet(st.secrets["USERS_SHEET_ID"])
+    records = sheet.get_all_records()
+    input_hash = hash_password(input_password)
+    for row in records:
+        if row["Username"] == username and row["Password"] == input_hash:
+            st.session_state["user_role"] = row.get("Role", "user")
+            return True
+    return False
+
+def update_password(username, new_password):
+    sheet = connect_sheet(st.secrets["USERS_SHEET_ID"])
+    records = sheet.get_all_records()
+    for i, row in enumerate(records):
+        if row["Username"] == username:
+            sheet.update_cell(i + 2, 2, hash_password(new_password))
+            return True
+    return False
 
 def load_sheet(sheet_id):
     url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
@@ -42,12 +80,12 @@ if "logged_in" not in st.session_state:
 if not st.session_state.logged_in:
     # Encabezado con logos
     empty_col, col1, col2, col3 = st.columns([0.5, 1, 2, 1])
-    
+
     with col1:
         col_logo_spacer, col_logo = st.columns([0.3, 1])  
         with col_logo:
             st.image("logo_rcm.png", width=120)
-    
+
     with col2:
         st.markdown(
             """
@@ -61,10 +99,10 @@ if not st.session_state.logged_in:
             """,
             unsafe_allow_html=True
         )
-    
+
     with col3:
         st.image("logo_farmacia.png", width=160)
-    
+
     st.markdown("<hr style='margin-top: -10px;'>", unsafe_allow_html=True)
 
     # Login box centrado
@@ -72,15 +110,35 @@ if not st.session_state.logged_in:
     with col_b:
         with st.container(border=True):
             st.markdown("### 🔐 Iniciar sesión")
-            with st.form("login"):
+            with st.form("login_form"):
                 user = st.text_input("Usuario:")
                 password = st.text_input("Contraseña:", type="password")
-                if st.form_submit_button("Ingresar"):
-                    if user == "j" and password == "1":
+                login_btn = st.form_submit_button("Ingresar")
+
+                if login_btn:
+                    if verify_login(user, password):
                         st.session_state.logged_in = True
+                        st.success("✅ Bienvenido")
                         st.rerun()
                     else:
-                        st.error("❌ Credenciales incorrectas")
+                        st.error("❌ Usuario o contraseña incorrectos.")
+
+            with st.expander("🔑 ¿Olvidaste tu contraseña?"):
+                st.markdown("Ingresa tu usuario y nueva contraseña:")
+                username_reset = st.text_input("Usuario:", key="reset_user")
+                new_pw = st.text_input("Nueva contraseña", type="password", key="new_pw")
+                confirm_pw = st.text_input("Confirmar contraseña", type="password", key="confirm_pw")
+
+                if st.button("Actualizar contraseña"):
+                    if not username_reset:
+                        st.warning("⚠️ Ingresa tu usuario.")
+                    elif new_pw != confirm_pw:
+                        st.warning("⚠️ Las contraseñas no coinciden.")
+                    else:
+                        if update_password(username_reset, new_pw):
+                            st.success("✅ Contraseña actualizada.")
+                        else:
+                            st.error("❌ Usuario no encontrado.")
 
             st.markdown(
                 "<div style='text-align: center; margin-top: 10px;'>"
