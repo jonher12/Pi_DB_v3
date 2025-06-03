@@ -229,52 +229,22 @@ st.markdown("<h1 style='text-align: center;'>Bienvenido a Pi v3</h1>", unsafe_al
 st.markdown(f"<h2 style='text-align: center;'>📚 Base de Datos de Cursos ({programa})</h2>", unsafe_allow_html=True)
 st.markdown("---")
 
-# Bloque de edición del curso (con todos los campos requeridos)
+# Detalle del curso
 col1, col2 = st.columns([1, 2])
 with col1:
-    codificacion = st.text_input("Codificación", value=curso["Codificación"])
-    estatus = st.selectbox("Estado", ["Activo", "Inactivo"], index=0 if curso["Estatus"] == 1 else 1)
-    titulo_es = st.text_input("Título Completo (ES)", value=curso["TítuloCompletoEspañol"])
-    titulo_en = st.text_input("Título Completo (EN)", value=curso["TítuloCompletoInglés"])
-    titulo_ab_es = st.text_input("Título Abreviado (ES)", value=curso["TítuloAbreviadoEspañol"])
-    titulo_ab_en = st.text_input("Título Abreviado (EN)", value=curso["TítuloAbreviadoInglés"])
-    creditos = st.number_input("Créditos", value=int(curso["Créditos"]), min_value=0)
-    horas = st.number_input("Horas Contacto", value=int(curso["HorasContacto"]), min_value=0)
-    anio = st.number_input("Año", value=int(curso["Año"]), min_value=1)
-    semestre = st.selectbox("Semestre", [1, 2], index=(int(curso["Semestre"]) - 1))
-    requisito = st.text_input("Requisito", value=curso["Requisito"])
-    electiva = st.text_input("Electiva", value=curso["Electiva"])
-    prerrequisitos = st.text_input("Cursos Prerrequisitos", value=curso["CursosPrerrequisitos"])
-    correquisitos = st.text_input("Cursos Correquisitos", value=curso["CursosCorrequisitos"])
-    anejos = st.text_input("Anejos", value=curso["Anejos"])
-    anejos_com = st.text_area("Anejos Comentarios", value=curso["AnejosComentarios"], height=100)
-    fecha_rev = st.text_input("Fecha Revisión", value=curso["FechaUltimaRevisión"])
-
-    # Diccionario de campos a comparar y actualizar
-    fields = {
-        "Codificación": codificacion,
-        "Estatus": 1 if estatus == "Activo" else 0,
-        "TítuloCompletoEspañol": titulo_es,
-        "TítuloCompletoInglés": titulo_en,
-        "TítuloAbreviadoEspañol": titulo_ab_es,
-        "TítuloAbreviadoInglés": titulo_ab_en,
-        "Créditos": creditos,
-        "HorasContacto": horas,
-        "Año": anio,
-        "Semestre": semestre,
-        "Requisito": requisito,
-        "Electiva": electiva,
-        "CursosPrerrequisitos": prerrequisitos,
-        "CursosCorrequisitos": correquisitos,
-        "Anejos": anejos,
-        "AnejosComentarios": anejos_com,
-        "FechaUltimaRevisión": fecha_rev
-    }
-
-    # Comparar y actualizar solo si cambia el valor
-    for field, new_value in fields.items():
-        if str(new_value) != str(curso[field]):
-            update_course_field(SHEET_IDS[programa], curso["Codificación"], field, new_value)
+    st.markdown(f"""
+    <div style="font-size: 18px; line-height: 1.8;">
+    <b>Codificación:</b> {curso['Codificación']}<br>
+    <b>Estado:</b> {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}<br>
+    <b>Título (ES):</b> {curso['TítuloCompletoEspañol']}<br>
+    <b>Título (EN):</b> {curso['TítuloCompletoInglés']}<br>
+    <b>Créditos:</b> {curso['Créditos']}<br>
+    <b>Horas Contacto:</b> {curso['HorasContacto']}<br>
+    <b>Año:</b> {curso['Año']}<br>
+    <b>Semestre:</b> {curso['Semestre']}<br>
+    <b>Fecha Revisión:</b> {curso['FechaUltimaRevisión']}<br>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("#### 📎 Upload & Download de Documentos")
