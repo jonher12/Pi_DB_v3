@@ -40,21 +40,18 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
-    # Encabezado con logos
+    # Encabezado con logos (sin ícono de pi)
     empty_col, col1, col2, col3 = st.columns([0.5, 1, 2, 1])
     
     with col1:
         st.image("logo_rcm.png", width=120)
     
     with col2:
-        col_pi, col_title = st.columns([1, 8])  # Ajuste: mueve contenido levemente a la izquierda
-        with col_pi:
-            st.image("pi.png", width=45)
-        with col_title:
-            st.markdown(
+        # Solo el título, sin imagen de pi
+        st.markdown(
             "<h1 style='margin: 0; padding-top: 10px; margin-left: -30px;'>Bienvenido a Pi v3</h1>",
             unsafe_allow_html=True
-            )
+        )
     
     with col3:
         st.image("logo_farmacia.png", width=160)
