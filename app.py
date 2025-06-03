@@ -62,7 +62,8 @@ def update_password(username, new_password):
 def register_log(username, action, role=""):
     try:
         sheet = connect_worksheet(LOG_SHEET_ID, "logs")
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ast = pytz.timezone("America/Puerto_Rico")
+        now = datetime.now(ast).strftime("%Y-%m-%d %H:%M:%S")
         sheet.append_row([now, username, action, role])
     except Exception as e:
         st.warning(f"⚠️ No se pudo registrar el log: {e}")
