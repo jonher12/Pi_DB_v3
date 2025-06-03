@@ -53,8 +53,8 @@ if not st.session_state.logged_in:
                 margin: 0;
                 padding-top: 10px;
                 font-size: 56px;
-                margin-left: 60px; #para centralizar el titulo, mientras mas grande y + mas a la derecha y viceversa
-                text-align: left;
+                margin-left: 30px; # para centralizar el titulo, mientras mas grande y + mas a la derecha y viceversa
+                text-align: center;
             '>Bienvenido a Pi v3</h1>
             """,
             unsafe_allow_html=True
