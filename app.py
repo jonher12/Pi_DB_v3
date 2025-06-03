@@ -41,21 +41,20 @@ if "logged_in" not in st.session_state:
 
 if not st.session_state.logged_in:
     # Encabezado con logos y título centrado
-    col1, col2, col3 = st.columns([1, 4, 1])
+    col1, col2, col3 = st.columns([1.2, 6, 1.2])
     
     with col1:
         st.image("logo_rcm.png", width=120)
     
     with col2:
-        st.markdown("""
-        <div style='text-align: center;'>
-            <h1 style='font-size: 42px; margin-bottom: 0;'>Bienvenido a Pi v3</h1>
-        </div>
-        """, unsafe_allow_html=True)
-
+        st.markdown(
+            "<h1 style='text-align: center; font-size: 42px; margin: 0;'>Bienvenido a Pi v3</h1>",
+            unsafe_allow_html=True
+        )
+    
     with col3:
-        st.image("logo_farmacia.png", width=160)
-
+        st.image("logo_farmacia.png", width=140)
+    
     st.markdown("<hr style='margin-top: -10px;'>", unsafe_allow_html=True)
 
     # Login box centrado
