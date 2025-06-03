@@ -4,6 +4,7 @@ import urllib.request
 import gspread
 from google.oauth2.service_account import Credentials
 import hashlib
+from datetime import datetime
 
 st.set_page_config(page_title="📘 Pi DB v3", layout="wide")
 
@@ -19,7 +20,7 @@ FOLDER_LINKS = {
 
 DRIVE_LINK_SHEET_ID = st.secrets["DRIVE_LINK_SHEET_ID"].strip()
 
-# 🔐 Funciones para autenticación
+# 🔐 Funciones de autenticación
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
@@ -33,36 +34,50 @@ def connect_sheet(sheet_id):
         scopes=scopes
     )
     client = gspread.authorize(credentials)
-    return client.open_by_key(sheet_id).worksheet("users")
+    return client
 
 def verify_login(username, input_password):
-    sheet = connect_sheet(st.secrets["USERS_SHEET_ID"])
+    client = connect_sheet(st.secrets["USERS_SHEET_ID"])
+    sheet = client.open_by_key(st.secrets["USERS_SHEET_ID"]).worksheet("users")
     records = sheet.get_all_records()
     input_hash = hash_password(input_password)
     for i, row in enumerate(records):
         if row["Username"] == username:
             stored_pw = row["Password"]
             if stored_pw == input_password:
-                # Contraseña en texto plano → actualizar a hash
+                # Convertir a hash si es texto plano
                 sheet.update_cell(i + 2, 2, input_hash)
                 st.info("🔐 Tu contraseña fue protegida automáticamente.")
                 st.session_state["user_role"] = row.get("Role", "user")
+                registrar_log(username, "Inicio de sesión (conversión de contraseña)")
                 return True
             elif stored_pw == input_hash:
                 st.session_state["user_role"] = row.get("Role", "user")
+                registrar_log(username, "Inicio de sesión exitoso")
                 return True
             else:
                 return False
     return False
 
 def update_password(username, new_password):
-    sheet = connect_sheet(st.secrets["USERS_SHEET_ID"])
+    client = connect_sheet(st.secrets["USERS_SHEET_ID"])
+    sheet = client.open_by_key(st.secrets["USERS_SHEET_ID"]).worksheet("users")
     records = sheet.get_all_records()
     for i, row in enumerate(records):
         if row["Username"] == username:
             sheet.update_cell(i + 2, 2, hash_password(new_password))
+            registrar_log(username, "Cambio de contraseña")
             return True
     return False
+
+def registrar_log(usuario, transaccion):
+    try:
+        client = connect_sheet(st.secrets["USERS_SHEET_ID"])
+        log_ws = client.open_by_key(st.secrets["USERS_SHEET_ID"]).worksheet("logs")
+        fecha_hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        log_ws.append_row([fecha_hora, usuario, transaccion])
+    except Exception as e:
+        st.warning(f"⚠️ No se pudo registrar el log: {e}")
 
 def load_sheet(sheet_id):
     url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
