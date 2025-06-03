@@ -54,7 +54,7 @@ if not st.session_state.logged_in:
                 padding-top: 10px;
                 font-size: 56px;
                 margin-left: 30px;  
-                text-align: right;
+                text-align: center;
             '>Bienvenido a Pi v3</h1>
             """,
             unsafe_allow_html=True
