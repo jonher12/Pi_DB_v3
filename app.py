@@ -46,7 +46,7 @@ def verify_login(username, input_password):
         if row["Username"] == username and row["Password"] == input_hash:
             st.session_state["user_role"] = row.get("Role", "user")
             st.session_state["username"] = username
-            register_log(username, "login", st.session_state["user_role"])
+            register_log(username, "login")
             return True
     return False
 
