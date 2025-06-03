@@ -44,14 +44,7 @@ if not st.session_state.logged_in:
     empty_col, col1, col2, col3 = st.columns([0.5, 1, 2, 1])
     
     with col1:
-        st.markdown(
-            """
-            <div style='padding-left: 40px;'>
-                <img src='logo_rcm.png' width='120'>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        st.image("logo_rcm.png", width=120)
     
     with col2:
         st.markdown(
