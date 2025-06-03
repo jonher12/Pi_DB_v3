@@ -91,12 +91,27 @@ def update_course_field(sheet_id, cod, column_name, new_value):
         worksheet_name = "tblMaster" if programa == "PharmD" else "tblMasterPhD"
         sheet = connect_worksheet(sheet_id, worksheet_name)
         headers = sheet.row_values(1)
-        col_index = headers.index(column_name) + 1  # columnas comienzan en 1
-        data = sheet.get_all_records()
 
+        # Índices de las columnas a modificar
+        col_index_main = headers.index(column_name) + 1
+        col_index_user = headers.index("ÚltimaModificaciónPor") + 1
+        col_index_date = headers.index("FechaÚltimaModificación") + 1
+
+        # Datos actuales para encontrar la fila
+        data = sheet.get_all_records()
         for i, row in enumerate(data):
             if row["Codificación"] == cod:
-                sheet.update_cell(i + 2, col_index, new_value)  # +2 porque headers están en la fila 1
+                row_number = i + 2  # offset por encabezado
+
+                # Actualizar campo principal
+                sheet.update_cell(row_number, col_index_main, new_value)
+
+                # Actualizar campos de auditoría
+                now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                sheet.update_cell(row_number, col_index_user, st.session_state["username"])
+                sheet.update_cell(row_number, col_index_date, now)
+
+                # Registrar en logs
                 register_log(st.session_state["username"], f"edit: {cod} - {column_name}")
                 break
     except Exception as e:
