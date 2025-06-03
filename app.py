@@ -120,7 +120,7 @@ if "logged_in" not in st.session_state:
 
 if not st.session_state.logged_in:
     # Encabezado con logos
-    empty_col, col1, col2, col3 = st.columns([0.8, 1, 2, 1])
+    empty_col, col1, col2, col3 = st.columns([0.8, .8, 2, 1])
     with col1:
         st.image("logo_rcm.png", width=120)
     with col2:
