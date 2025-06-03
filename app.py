@@ -170,6 +170,26 @@ programa = st.sidebar.radio("Selecciona el Programa:", ["PharmD", "PhD"], key="p
 df = load_sheet(SHEET_IDS[programa])
 df_links = load_sheet(DRIVE_LINK_SHEET_ID)
 
+# Registrar cambio de programa
+if "last_programa" not in st.session_state:
+    st.session_state["last_programa"] = programa
+elif programa != st.session_state["last_programa"]:
+    register_log(st.session_state["username"], f"switch_program: {st.session_state['last_programa']} → {programa}")
+    st.session_state["last_programa"] = programa
+
+# Registrar filtros aplicados
+if st.session_state.get("cod_sel"):
+    register_log(st.session_state["username"], f"search: code = {st.session_state['cod_sel']}")
+elif st.session_state.get("tit_sel"):
+    register_log(st.session_state["username"], f"search: title = {st.session_state['tit_sel']}")
+elif st.session_state.get("clave_sel"):
+    register_log(st.session_state["username"], f"search: keyword = {st.session_state['clave_sel']}")
+
+# Registrar vista del curso seleccionado
+if "viewed_course" not in st.session_state or st.session_state["viewed_course"] != curso["Codificación"]:
+    register_log(st.session_state["username"], f"view_course: {curso['Codificación']}")
+    st.session_state["viewed_course"] = curso["Codificación"]
+
 if df.empty or df_links.empty:
     st.stop()
 
