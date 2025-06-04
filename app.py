@@ -231,6 +231,20 @@ elif tipo_filtro == "🔍 Búsqueda Avanzada":
         else:
             st.sidebar.warning(f"⚠️ La columna '{campo_sel}' no está disponible en los datos.")
 
+if tipo_filtro in ["Por código", "Por título del curso"]:
+    if not df_filtrado.empty:
+        curso = df_filtrado.iloc[0]
+    else:
+        st.warning("⚠️ No se encontraron cursos con ese filtro.")
+        st.stop()
+elif tipo_filtro == "🔍 Búsqueda Avanzada":
+    if 'resultados_filtrados' in locals() and not resultados_filtrados.empty:
+        if len(resultados_filtrados) == 1:
+            curso = resultados_filtrados.iloc[0]
+    else:
+        st.warning("⚠️ No se encontraron cursos con ese filtro.")
+        st.stop()
+
 # --- Botón de Cerrar Sesión ---
 st.sidebar.markdown("---")
 if st.sidebar.button("🚪 Terminar sesión", help="Cerrar sesión y salir de la aplicación"):
