@@ -222,9 +222,17 @@ elif tipo_filtro == "🔍 Búsqueda Avanzada":
 
     if campo_sel and palabra_clave:
         palabra_clave_normalizada = normalize(palabra_clave)
-        resultados_filtrados = df[df[campo_sel].apply(lambda x: palabra_clave_normalizada in normalize(x))]
-        st.sidebar.success(f"📌 Búsqueda de _{palabra_clave}_ en **{campo_sel}**")
-        register_log(st.session_state["username"], f"search: {campo_sel} ~ {palabra_clave}")
+
+        # Asegurar que no haya NaN en la columna
+        df[campo_sel] = df[campo_sel].fillna("").astype(str)
+
+        try:
+            resultados_filtrados = df[df[campo_sel].apply(lambda x: palabra_clave_normalizada in normalize(x))]
+            if not resultados_filtrados.empty:
+                st.sidebar.success(f"📌 Búsqueda de _{palabra_clave}_ en **{campo_sel}**")
+                register_log(st.session_state["username"], f"search: {campo_sel} ~ {palabra_clave}")
+        except Exception as e:
+            st.warning(f"⚠️ Error durante la búsqueda avanzada: {e}")
 
 # Validar resultado
 if not resultados_filtrados.empty:
