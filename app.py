@@ -165,8 +165,6 @@ if not st.session_state.logged_in:
                     unsafe_allow_html=True)
     st.stop()
 
-import unicodedata
-
 # Función para normalizar texto
 def normalize(text):
     return unicodedata.normalize("NFKD", str(text)).encode("ascii", "ignore").decode("utf-8").lower()
