@@ -163,7 +163,7 @@ if not st.session_state.logged_in:
                     "<small>División de Evaluación de la Efectividad Curricular e Institucional. "
                     "Todos los derechos reservados. JHA 2025©. Administrador: Jonathan Hernández-Agosto, EdD, GCG.</small></div>",
                     unsafe_allow_html=True)
-    #st.stop()
+    st.stop()
 
 # Función para normalizar texto
 def normalize(text):
@@ -223,7 +223,7 @@ elif tipo_filtro == "🔍 Búsqueda Avanzada":
     if campo_sel and palabra_clave:
         palabra_clave_normalizada = normalize(palabra_clave)
 
-        # Asegurar que no haya NaN en la columna
+        # Limpieza de nulos
         df[campo_sel] = df[campo_sel].fillna("").astype(str)
 
         try:
@@ -262,7 +262,7 @@ if "viewed_course" not in st.session_state or st.session_state["viewed_course"] 
     register_log(st.session_state["username"], f"view_course: {curso['Codificación']}")
     st.session_state["viewed_course"] = curso["Codificación"]
 
-# Títulos principales
+# Título de bienvenida
 st.markdown("<h1 style='text-align: center;'>Bienvenido a Pi v3</h1>", unsafe_allow_html=True)
 st.markdown(f"<h2 style='text-align: center;'>📚 Base de Datos de Cursos ({programa})</h2>", unsafe_allow_html=True)
 st.markdown("---")
