@@ -203,12 +203,19 @@ elif tipo_filtro == "Por título del curso":
         register_log(st.session_state["username"], f"search: title = {titulo_sel}")
 
 elif tipo_filtro == "Por palabra clave":
+    st.sidebar.markdown("### 🔍 Búsqueda Avanzada")
+    columnas_busqueda = [
+        "Codificación", "TítuloCompletoEspañol", "TítuloCompletoInglés",
+        "Descripción", "Comentarios", "AnejosComentarios", "CursosPrerrequisitos", "CursosCorrequisitos"
+    ]
+    campo_sel = st.sidebar.selectbox("Buscar en:", columnas_busqueda, index=1)
     palabra_clave = st.sidebar.text_input("Ingresa una palabra clave:")
-    if palabra_clave:
+
+    if campo_sel and palabra_clave:
         palabra_clave_lower = palabra_clave.lower()
-        df_filtrado = df[df.apply(lambda row: row.astype(str).str.lower().str.contains(palabra_clave_lower).any(), axis=1)]
-        st.sidebar.success(f"📌 Búsqueda por palabra clave: _{palabra_clave}_")
-        register_log(st.session_state["username"], f"search: keyword = {palabra_clave}")
+        df_filtrado = df[df[campo_sel].astype(str).str.lower().str.contains(palabra_clave_lower)]
+        st.sidebar.success(f"📌 Búsqueda de _{palabra_clave}_ en **{campo_sel}**")
+        register_log(st.session_state["username"], f"search: {campo_sel} ~ {palabra_clave}")
 
 # Validar resultado
 if not df_filtrado.empty:
