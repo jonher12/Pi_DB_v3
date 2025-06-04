@@ -166,11 +166,11 @@ if not st.session_state.logged_in:
     st.stop()
 
 # Función para normalizar texto
-#def normalize(text):
-  #  try:
-   #     return unicodedata.normalize("NFKD", str(text)).encode("ascii", "ignore").decode("utf-8").lower()
-  #  except:
-   #     return ""
+def normalize(text):
+    try:
+        return unicodedata.normalize("NFKD", str(text)).encode("ascii", "ignore").decode("utf-8").lower()
+    except:
+        return ""
 
 # App body
 st.sidebar.title("Navegación")
