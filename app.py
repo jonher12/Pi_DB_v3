@@ -6,7 +6,6 @@ from google.oauth2.service_account import Credentials
 import hashlib
 from datetime import datetime
 import pytz
-import unicodedata
 
 st.set_page_config(page_title="📘 Pi DB v3", layout="wide")
 
@@ -165,13 +164,6 @@ if not st.session_state.logged_in:
                     unsafe_allow_html=True)
     st.stop()
 
-# Función para normalizar texto
-def normalize(text):
-    try:
-        return unicodedata.normalize("NFKD", str(text)).encode("ascii", "ignore").decode("utf-8").lower()
-    except:
-        return ""
-
 # App body
 st.sidebar.title("Navegación")
 programa = st.sidebar.radio("Selecciona el Programa:", ["PharmD", "PhD"], key="programa")
@@ -185,7 +177,7 @@ elif programa != st.session_state["last_programa"]:
     register_log(st.session_state["username"], f"switch_program: {st.session_state['last_programa']} → {programa}")
     st.session_state["last_programa"] = programa
 
-# ✅ FILTROS DINÁMICOS Y BÚSQUEDA AVANZADA
+# ✅ FILTROS DINÁMICOS AQUÍ
 st.sidebar.markdown("## 🎯 Filtros de Búsqueda Dinámicos")
 tipo_filtro = st.sidebar.radio(
     "Selecciona el tipo de filtro:",
@@ -195,19 +187,18 @@ tipo_filtro = st.sidebar.radio(
 
 df_filtrado = df.copy()
 curso = None
-resultados_filtrados = pd.DataFrame()
 
 if tipo_filtro == "Por código":
     codigo_sel = st.sidebar.selectbox("Selecciona el código del curso:", sorted(df["Codificación"].dropna().unique()))
     if codigo_sel:
-        resultados_filtrados = df[df["Codificación"] == codigo_sel]
+        df_filtrado = df[df["Codificación"] == codigo_sel]
         st.sidebar.success(f"📌 Código seleccionado: `{codigo_sel}`")
         register_log(st.session_state["username"], f"search: code = {codigo_sel}")
 
 elif tipo_filtro == "Por título del curso":
     titulo_sel = st.sidebar.selectbox("Selecciona el título del curso:", sorted(df["TítuloCompletoEspañol"].dropna().unique()))
     if titulo_sel:
-        resultados_filtrados = df[df["TítuloCompletoEspañol"] == titulo_sel]
+        df_filtrado = df[df["TítuloCompletoEspañol"] == titulo_sel]
         st.sidebar.success(f"📌 Título seleccionado: **{titulo_sel}**")
         register_log(st.session_state["username"], f"search: title = {titulo_sel}")
 
@@ -221,29 +212,22 @@ elif tipo_filtro == "🔍 Búsqueda Avanzada":
     palabra_clave = st.sidebar.text_input("Ingresa una palabra clave:")
 
     if campo_sel and palabra_clave:
-        palabra_clave_normalizada = normalize(palabra_clave)
-
-        # Limpieza de nulos
-        df[campo_sel] = df[campo_sel].fillna("").astype(str)
-
-        try:
-            resultados_filtrados = df[df[campo_sel].apply(lambda x: palabra_clave_normalizada in normalize(x))]
-            if not resultados_filtrados.empty:
-                st.sidebar.success(f"📌 Búsqueda de _{palabra_clave}_ en **{campo_sel}**")
-                register_log(st.session_state["username"], f"search: {campo_sel} ~ {palabra_clave}")
-        except Exception as e:
-            st.warning(f"⚠️ Error durante la búsqueda avanzada: {e}")
+        palabra_clave_lower = palabra_clave.lower()
+        df_filtrado = df[df[campo_sel].astype(str).str.lower().str.contains(palabra_clave_lower)]
+        st.sidebar.success(f"📌 Búsqueda de _{palabra_clave}_ en **{campo_sel}**")
+        register_log(st.session_state["username"], f"search: {campo_sel} ~ {palabra_clave}")
 
 # Validar resultado
-if not resultados_filtrados.empty:
-    if len(resultados_filtrados) == 1:
-        curso = resultados_filtrados.iloc[0]
+if not df_filtrado.empty:
+    if len(df_filtrado) == 1:
+        curso = df_filtrado.iloc[0]
     else:
-        st.markdown("### 🔎 Se encontraron múltiples cursos. Selecciona uno para ver detalles:")
-        opciones = resultados_filtrados["Codificación"] + " — " + resultados_filtrados["TítuloCompletoEspañol"]
+        opciones = df_filtrado["Codificación"] + " — " + df_filtrado["TítuloCompletoEspañol"]
         seleccion = st.selectbox("Selecciona el curso que deseas consultar:", opciones)
+
+        # Extraer codificación del string seleccionado
         cod_seleccionado = seleccion.split(" — ")[0]
-        curso = resultados_filtrados[resultados_filtrados["Codificación"] == cod_seleccionado].iloc[0]
+        curso = df_filtrado[df_filtrado["Codificación"] == cod_seleccionado].iloc[0]
 else:
     st.warning("⚠️ No se encontraron cursos con ese filtro.")
     st.stop()
@@ -262,7 +246,6 @@ if "viewed_course" not in st.session_state or st.session_state["viewed_course"] 
     register_log(st.session_state["username"], f"view_course: {curso['Codificación']}")
     st.session_state["viewed_course"] = curso["Codificación"]
 
-# Título de bienvenida
 st.markdown("<h1 style='text-align: center;'>Bienvenido a Pi v3</h1>", unsafe_allow_html=True)
 st.markdown(f"<h2 style='text-align: center;'>📚 Base de Datos de Cursos ({programa})</h2>", unsafe_allow_html=True)
 st.markdown("---")
