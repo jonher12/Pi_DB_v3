@@ -163,7 +163,7 @@ if not st.session_state.logged_in:
                     "<small>División de Evaluación de la Efectividad Curricular e Institucional. "
                     "Todos los derechos reservados. JHA 2025©. Administrador: Jonathan Hernández-Agosto, EdD, GCG.</small></div>",
                     unsafe_allow_html=True)
-    st.stop()
+    #st.stop()
 
 # Función para normalizar texto
 def normalize(text):
