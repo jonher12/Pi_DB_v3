@@ -212,10 +212,25 @@ elif tipo_filtro == "🔍 Búsqueda Avanzada":
     palabra_clave = st.sidebar.text_input("Ingresa una palabra clave:")
 
     if campo_sel and palabra_clave:
-        palabra_clave_lower = palabra_clave.lower()
-        df_filtrado = df[df[campo_sel].astype(str).str.lower().str.contains(palabra_clave_lower)]
-        st.sidebar.success(f"📌 Búsqueda de _{palabra_clave}_ en **{campo_sel}**")
-        register_log(st.session_state["username"], f"search: {campo_sel} ~ {palabra_clave}")
+        palabra_clave_normalizada = normalize(palabra_clave)
+
+        if campo_sel in df.columns:
+            # Asegura que la columna esté limpia y en formato string
+            df[campo_sel] = df[campo_sel].fillna("").astype(str)
+
+            # Aplica búsqueda normalizada
+            try:
+                resultados_filtrados = df[df[campo_sel].apply(lambda x: palabra_clave_normalizada in normalize(x))]
+                if not resultados_filtrados.empty:
+                    st.sidebar.success(f"📌 Búsqueda de _{palabra_clave}_ en **{campo_sel}**")
+                    register_log(st.session_state["username"], f"search: {campo_sel} ~ {palabra_clave}")
+                else:
+                    st.sidebar.warning("🔎 No se encontraron resultados con ese criterio.")
+            except Exception as e:
+                st.sidebar.error(f"❌ Error en la búsqueda: {e}")
+        else:
+            st.sidebar.warning(f"⚠️ La columna '{campo_sel}' no está disponible en los datos.")
+
 
 # Validar resultado
 if not df_filtrado.empty:
