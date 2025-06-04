@@ -254,10 +254,12 @@ if st.sidebar.button("🚪 Terminar sesión", help="Cerrar sesión y salir de la
     st.session_state.user_role = ""
     st.rerun()
 
-# Registrar vista del curso
-if "viewed_course" not in st.session_state or st.session_state["viewed_course"] != curso["Codificación"]:
-    register_log(st.session_state["username"], f"view_course: {curso['Codificación']}")
-    st.session_state["viewed_course"] = curso["Codificación"]
+# Registrar vista del curso solo si hay un curso seleccionado
+if curso is not None:
+    if "viewed_course" not in st.session_state or st.session_state["viewed_course"] != curso["Codificación"]:
+        register_log(st.session_state["username"], f"view_course: {curso['Codificación']}")
+        st.session_state["viewed_course"] = curso["Codificación"]
+
 
 st.markdown("<h1 style='text-align: center;'>Bienvenido a Pi v3</h1>", unsafe_allow_html=True)
 st.markdown(f"<h2 style='text-align: center;'>📚 Base de Datos de Cursos ({programa})</h2>", unsafe_allow_html=True)
