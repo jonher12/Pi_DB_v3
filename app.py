@@ -181,7 +181,7 @@ elif programa != st.session_state["last_programa"]:
 st.sidebar.markdown("## 🎯 Filtros de Búsqueda Dinámicos")
 tipo_filtro = st.sidebar.radio(
     "Selecciona el tipo de filtro:",
-    ["Por código", "Por título del curso", "Búsqueda Avanzada"],
+    ["Por código", "Por título del curso", "🔍 Búsqueda Avanzada"],
     index=None
 )
 
