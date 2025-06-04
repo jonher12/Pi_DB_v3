@@ -231,22 +231,6 @@ elif tipo_filtro == "🔍 Búsqueda Avanzada":
         else:
             st.sidebar.warning(f"⚠️ La columna '{campo_sel}' no está disponible en los datos.")
 
-
-# Validar resultado
-if not df_filtrado.empty:
-    if len(df_filtrado) == 1:
-        curso = df_filtrado.iloc[0]
-    else:
-        opciones = df_filtrado["Codificación"] + " — " + df_filtrado["TítuloCompletoEspañol"]
-        seleccion = st.selectbox("Selecciona el curso que deseas consultar:", opciones)
-
-        # Extraer codificación del string seleccionado
-        cod_seleccionado = seleccion.split(" — ")[0]
-        curso = df_filtrado[df_filtrado["Codificación"] == cod_seleccionado].iloc[0]
-else:
-    st.warning("⚠️ No se encontraron cursos con ese filtro.")
-    st.stop()
-
 # --- Botón de Cerrar Sesión ---
 st.sidebar.markdown("---")
 if st.sidebar.button("🚪 Terminar sesión", help="Cerrar sesión y salir de la aplicación"):
@@ -264,6 +248,21 @@ if "viewed_course" not in st.session_state or st.session_state["viewed_course"] 
 st.markdown("<h1 style='text-align: center;'>Bienvenido a Pi v3</h1>", unsafe_allow_html=True)
 st.markdown(f"<h2 style='text-align: center;'>📚 Base de Datos de Cursos ({programa})</h2>", unsafe_allow_html=True)
 st.markdown("---")
+
+# Validar resultado
+if not df_filtrado.empty:
+    if len(df_filtrado) == 1:
+        curso = df_filtrado.iloc[0]
+    else:
+        opciones = df_filtrado["Codificación"] + " — " + df_filtrado["TítuloCompletoEspañol"]
+        seleccion = st.selectbox("Selecciona el curso que deseas consultar:", opciones)
+
+        # Extraer codificación del string seleccionado
+        cod_seleccionado = seleccion.split(" — ")[0]
+        curso = df_filtrado[df_filtrado["Codificación"] == cod_seleccionado].iloc[0]
+else:
+    st.warning("⚠️ No se encontraron cursos con ese filtro.")
+    st.stop()
 
 # Detalle del curso
 col1, col2 = st.columns([1, 2])
