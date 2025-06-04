@@ -188,37 +188,57 @@ elif st.session_state.get("clave_sel"):
 if df.empty or df_links.empty:
     st.stop()
 
-for key in ["cod_sel", "tit_sel", "clave_sel"]:
-    if key not in st.session_state:
-        st.session_state[key] = ""
+st.sidebar.markdown("## 🎯 Filtros de Búsqueda Dinámicos")
 
-st.sidebar.markdown("---")
-st.sidebar.markdown("### Filtros de Búsqueda")
-st.sidebar.markdown("<span style='color: red; font-weight: bold;'>ℹ️ Para utilizar un filtro diferente, primero pulsa 'Limpiar Filtros'.</span>", unsafe_allow_html=True)
-
-if st.sidebar.button("🔄 Limpiar Filtros", key="btn_clear_all"):
-    st.session_state["cod_sel"] = ""
-    st.session_state["tit_sel"] = ""
-    st.session_state["clave_sel"] = ""
-    register_log(st.session_state["username"], "clear_filters")
+# Opción para cerrar sesión
+if st.sidebar.button("🚪 Cerrar sesión"):
+    st.session_state.logged_in = False
+    st.session_state.username = ""
+    st.session_state.user_role = ""
     st.rerun()
 
-codigos = sorted(df["Codificación"].dropna().unique().tolist())
-titulos = sorted(df["TítuloCompletoEspañol"].dropna().unique().tolist())
+# Selección del tipo de filtro dinámico
+tipo_filtro = st.sidebar.radio(
+    "Selecciona el tipo de filtro:",
+    ["Por código", "Por título del curso", "Por palabra clave"],
+    index=None
+)
 
-st.sidebar.selectbox("Seleccionar Código:", codigos, index=codigos.index(st.session_state["cod_sel"]) if st.session_state["cod_sel"] in codigos else 0, key="cod_sel")
-st.sidebar.selectbox("Título del Curso:", titulos, index=titulos.index(st.session_state["tit_sel"]) if st.session_state["tit_sel"] in titulos else 0, key="tit_sel")
-st.sidebar.text_input("Palabra Clave:", value=st.session_state["clave_sel"], key="clave_sel")
-
+# Inicialización
 df_filtrado = df.copy()
-if st.session_state["cod_sel"]:
-    df_filtrado = df[df["Codificación"] == st.session_state["cod_sel"]]
-elif st.session_state["tit_sel"]:
-    df_filtrado = df[df["TítuloCompletoEspañol"] == st.session_state["tit_sel"]]
-elif st.session_state["clave_sel"]:
-    df_filtrado = df[df.apply(lambda row: st.session_state["clave_sel"].lower() in str(row).lower(), axis=1)]
+curso = None
 
-curso = df_filtrado.iloc[0] if not df_filtrado.empty else df.iloc[0]
+# Filtro: Por código
+if tipo_filtro == "Por código":
+    codigo_sel = st.sidebar.selectbox("Selecciona el código del curso:", sorted(df["Codificación"].dropna().unique()))
+    if codigo_sel:
+        df_filtrado = df[df["Codificación"] == codigo_sel]
+        st.sidebar.success(f"📌 Código seleccionado: `{codigo_sel}`")
+        register_log(st.session_state["username"], f"search: code = {codigo_sel}")
+
+# Filtro: Por título del curso
+elif tipo_filtro == "Por título del curso":
+    titulo_sel = st.sidebar.selectbox("Selecciona el título del curso:", sorted(df["TítuloCompletoEspañol"].dropna().unique()))
+    if titulo_sel:
+        df_filtrado = df[df["TítuloCompletoEspañol"] == titulo_sel]
+        st.sidebar.success(f"📌 Título seleccionado: **{titulo_sel}**")
+        register_log(st.session_state["username"], f"search: title = {titulo_sel}")
+
+# Filtro: Por palabra clave
+elif tipo_filtro == "Por palabra clave":
+    palabra_clave = st.sidebar.text_input("Ingresa una palabra clave:")
+    if palabra_clave:
+        palabra_clave_lower = palabra_clave.lower()
+        df_filtrado = df[df.apply(lambda row: row.astype(str).str.lower().str.contains(palabra_clave_lower).any(), axis=1)]
+        st.sidebar.success(f"📌 Búsqueda por palabra clave: _{palabra_clave}_")
+        register_log(st.session_state["username"], f"search: keyword = {palabra_clave}")
+
+# Validar curso encontrado
+if not df_filtrado.empty:
+    curso = df_filtrado.iloc[0]
+else:
+    st.warning("⚠️ No se encontraron cursos con ese filtro.")
+    st.stop()
 
 # Registrar vista del curso
 if "viewed_course" not in st.session_state or st.session_state["viewed_course"] != curso["Codificación"]:
