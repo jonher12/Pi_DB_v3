@@ -181,7 +181,7 @@ elif programa != st.session_state["last_programa"]:
 st.sidebar.markdown("## 🎯 Filtros de Búsqueda Dinámicos")
 tipo_filtro = st.sidebar.radio(
     "Selecciona el tipo de filtro:",
-    ["Por código", "Por título del curso", "Por palabra clave"],
+    ["Por código", "Por título del curso", "🔍 Búsqueda Avanzada"],
     index=None
 )
 
@@ -202,7 +202,7 @@ elif tipo_filtro == "Por título del curso":
         st.sidebar.success(f"📌 Título seleccionado: **{titulo_sel}**")
         register_log(st.session_state["username"], f"search: title = {titulo_sel}")
 
-elif tipo_filtro == "Por palabra clave":
+elif tipo_filtro == "🔍 Búsqueda Avanzada":
     st.sidebar.markdown("### 🔍 Búsqueda Avanzada")
     columnas_busqueda = [
         "Codificación", "TítuloCompletoEspañol", "TítuloCompletoInglés",
