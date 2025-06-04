@@ -265,51 +265,50 @@ st.markdown("<h1 style='text-align: center;'>Bienvenido a Pi v3</h1>", unsafe_al
 st.markdown(f"<h2 style='text-align: center;'>📚 Base de Datos de Cursos ({programa})</h2>", unsafe_allow_html=True)
 st.markdown("---")
 
-# Mostrar selección de curso solo si hay más de uno
-if tipo_filtro == "🔍 Búsqueda Avanzada" and 'resultados_filtrados' in locals() and len(resultados_filtrados) > 1:
-    st.markdown("### 🔎 Se encontraron múltiples cursos. Selecciona uno para ver detalles:")
-    opciones = resultados_filtrados["Codificación"] + " — " + resultados_filtrados["TítuloCompletoEspañol"]
-    seleccion = st.selectbox("Selecciona el curso que deseas consultar:", opciones)
-    cod_seleccionado = seleccion.split(" — ")[0]
-    curso = resultados_filtrados[resultados_filtrados["Codificación"] == cod_seleccionado].iloc[0]
+# Mostrar detalles del curso solo si hay un curso seleccionado
+if curso is not None:
+    # Títulos principales
+    st.markdown("<h1 style='text-align: center;'>Bienvenido a Pi v3</h1>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='text-align: center;'>📚 Base de Datos de Cursos ({programa})</h2>", unsafe_allow_html=True)
+    st.markdown("---")
 
-# Detalle del curso
-col1, col2 = st.columns([1, 2])
-with col1:
-    st.markdown(f"""
-    <div style="font-size: 18px; line-height: 1.8;">
-    <b>Codificación:</b> {curso['Codificación']}<br>
-    <b>Estado:</b> {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}<br>
-    <b>Título (ES):</b> {curso['TítuloCompletoEspañol']}<br>
-    <b>Título (EN):</b> {curso['TítuloCompletoInglés']}<br>
-    <b>Créditos:</b> {curso['Créditos']}<br>
-    <b>Horas Contacto:</b> {curso['HorasContacto']}<br>
-    <b>Año:</b> {curso['Año']}<br>
-    <b>Semestre:</b> {curso['Semestre']}<br>
-    <b>Fecha Revisión:</b> {curso['FechaUltimaRevisión']}<br>
-    </div>
-    """, unsafe_allow_html=True)
+    # Detalle del curso
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        st.markdown(f"""
+        <div style="font-size: 18px; line-height: 1.8;">
+        <b>Codificación:</b> {curso['Codificación']}<br>
+        <b>Estado:</b> {'Activo' if curso['Estatus'] == 1 else 'Inactivo'}<br>
+        <b>Título (ES):</b> {curso['TítuloCompletoEspañol']}<br>
+        <b>Título (EN):</b> {curso['TítuloCompletoInglés']}<br>
+        <b>Créditos:</b> {curso['Créditos']}<br>
+        <b>Horas Contacto:</b> {curso['HorasContacto']}<br>
+        <b>Año:</b> {curso['Año']}<br>
+        <b>Semestre:</b> {curso['Semestre']}<br>
+        <b>Fecha Revisión:</b> {curso['FechaUltimaRevisión']}<br>
+        </div>
+        """, unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("#### 📎 Upload & Download de Documentos")
-    folder_row = df_links[(df_links["Codificación"] == curso['Codificación']) & (df_links["Programa"] == programa)]
-    if not folder_row.empty:
-        folder_id = folder_row.iloc[0]["FolderID"]
-        st.markdown(f"[📂 Abrir carpeta del curso {curso['Codificación']}]({f'https://drive.google.com/drive/folders/{folder_id}'})")
-    else:
-        st.warning("⚠️ No se encontró el enlace directo para este curso.")
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("#### 📎 Upload & Download de Documentos")
+        folder_row = df_links[(df_links["Codificación"] == curso['Codificación']) & (df_links["Programa"] == programa)]
+        if not folder_row.empty:
+            folder_id = folder_row.iloc[0]["FolderID"]
+            st.markdown(f"[📂 Abrir carpeta del curso {curso['Codificación']}]({f'https://drive.google.com/drive/folders/{folder_id}'})")
+        else:
+            st.warning("⚠️ No se encontró el enlace directo para este curso.")
 
-with col2:
-    st.markdown("### 📝 Descripción del Curso")
-    descripcion = st.text_area("Descripción", value=curso["Descripción"], height=300)
-    if descripcion != curso["Descripción"]:
-        update_course_field(SHEET_IDS[programa], curso["Codificación"], "Descripción", descripcion)
+    with col2:
+        st.markdown("### 📝 Descripción del Curso")
+        descripcion = st.text_area("Descripción", value=curso["Descripción"], height=300)
+        if descripcion != curso["Descripción"]:
+            update_course_field(SHEET_IDS[programa], curso["Codificación"], "Descripción", descripcion)
 
-    st.markdown("### 🗒️ Comentarios")
-    comentarios = st.text_area("Comentarios", value=curso["Comentarios"], height=300)
-    if comentarios != curso["Comentarios"]:
-        update_course_field(SHEET_IDS[programa], curso["Codificación"], "Comentarios", comentarios)
+        st.markdown("### 🗒️ Comentarios")
+        comentarios = st.text_area("Comentarios", value=curso["Comentarios"], height=300)
+        if comentarios != curso["Comentarios"]:
+            update_course_field(SHEET_IDS[programa], curso["Codificación"], "Comentarios", comentarios)
 
-# Pie de página
-st.markdown("---")
-st.caption("División de Evaluación de la Efectividad Curricular e Institucional. Todos los derechos reservados. JHA 2025©. Administrador: Jonathan Hernández-Agosto, EdD, GCG.")
+    # Pie de página
+    st.markdown("---")
+    st.caption("División de Evaluación de la Efectividad Curricular e Institucional. Todos los derechos reservados. JHA 2025©. Administrador: Jonathan Hernández-Agosto, EdD, GCG.")
