@@ -190,13 +190,6 @@ if df.empty or df_links.empty:
 
 st.sidebar.markdown("## 🎯 Filtros de Búsqueda Dinámicos")
 
-# Opción para cerrar sesión
-if st.sidebar.button("🚪 Cerrar sesión"):
-    st.session_state.logged_in = False
-    st.session_state.username = ""
-    st.session_state.user_role = ""
-    st.rerun()
-
 # Selección del tipo de filtro dinámico
 tipo_filtro = st.sidebar.radio(
     "Selecciona el tipo de filtro:",
@@ -240,6 +233,15 @@ else:
     st.warning("⚠️ No se encontraron cursos con ese filtro.")
     st.stop()
 
+# --- Línea divisoria y botón de cerrar sesión al final del sidebar ---
+st.sidebar.markdown("---")
+if st.sidebar.button("🚪 Terminar sesión", help="Cerrar sesión y salir de la aplicación"):
+    register_log(st.session_state["username"], "logout")
+    st.session_state.logged_in = False
+    st.session_state.username = ""
+    st.session_state.user_role = ""
+    st.experimental_rerun()
+    
 # Registrar vista del curso
 if "viewed_course" not in st.session_state or st.session_state["viewed_course"] != curso["Codificación"]:
     register_log(st.session_state["username"], f"view_course: {curso['Codificación']}")
