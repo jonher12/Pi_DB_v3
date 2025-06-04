@@ -240,7 +240,7 @@ if st.sidebar.button("🚪 Terminar sesión", help="Cerrar sesión y salir de la
     st.session_state.logged_in = False
     st.session_state.username = ""
     st.session_state.user_role = ""
-    st.experimental_rerun()
+    st.rerun()
     
 # Registrar vista del curso
 if "viewed_course" not in st.session_state or st.session_state["viewed_course"] != curso["Codificación"]:
