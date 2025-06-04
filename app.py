@@ -177,31 +177,17 @@ elif programa != st.session_state["last_programa"]:
     register_log(st.session_state["username"], f"switch_program: {st.session_state['last_programa']} → {programa}")
     st.session_state["last_programa"] = programa
 
-# Registrar filtros aplicados
-if st.session_state.get("cod_sel"):
-    register_log(st.session_state["username"], f"search: code = {st.session_state['cod_sel']}")
-elif st.session_state.get("tit_sel"):
-    register_log(st.session_state["username"], f"search: title = {st.session_state['tit_sel']}")
-elif st.session_state.get("clave_sel"):
-    register_log(st.session_state["username"], f"search: keyword = {st.session_state['clave_sel']}")
-
-if df.empty or df_links.empty:
-    st.stop()
-
+# ✅ FILTROS DINÁMICOS AQUÍ
 st.sidebar.markdown("## 🎯 Filtros de Búsqueda Dinámicos")
-
-# Selección del tipo de filtro dinámico
 tipo_filtro = st.sidebar.radio(
     "Selecciona el tipo de filtro:",
     ["Por código", "Por título del curso", "Por palabra clave"],
     index=None
 )
 
-# Inicialización
 df_filtrado = df.copy()
 curso = None
 
-# Filtro: Por código
 if tipo_filtro == "Por código":
     codigo_sel = st.sidebar.selectbox("Selecciona el código del curso:", sorted(df["Codificación"].dropna().unique()))
     if codigo_sel:
@@ -209,7 +195,6 @@ if tipo_filtro == "Por código":
         st.sidebar.success(f"📌 Código seleccionado: `{codigo_sel}`")
         register_log(st.session_state["username"], f"search: code = {codigo_sel}")
 
-# Filtro: Por título del curso
 elif tipo_filtro == "Por título del curso":
     titulo_sel = st.sidebar.selectbox("Selecciona el título del curso:", sorted(df["TítuloCompletoEspañol"].dropna().unique()))
     if titulo_sel:
@@ -217,7 +202,6 @@ elif tipo_filtro == "Por título del curso":
         st.sidebar.success(f"📌 Título seleccionado: **{titulo_sel}**")
         register_log(st.session_state["username"], f"search: title = {titulo_sel}")
 
-# Filtro: Por palabra clave
 elif tipo_filtro == "Por palabra clave":
     palabra_clave = st.sidebar.text_input("Ingresa una palabra clave:")
     if palabra_clave:
@@ -226,14 +210,14 @@ elif tipo_filtro == "Por palabra clave":
         st.sidebar.success(f"📌 Búsqueda por palabra clave: _{palabra_clave}_")
         register_log(st.session_state["username"], f"search: keyword = {palabra_clave}")
 
-# Validar curso encontrado
+# Validar resultado
 if not df_filtrado.empty:
     curso = df_filtrado.iloc[0]
 else:
     st.warning("⚠️ No se encontraron cursos con ese filtro.")
     st.stop()
 
-# --- Línea divisoria y botón de cerrar sesión al final del sidebar ---
+# --- Botón de Cerrar Sesión ---
 st.sidebar.markdown("---")
 if st.sidebar.button("🚪 Terminar sesión", help="Cerrar sesión y salir de la aplicación"):
     register_log(st.session_state["username"], "logout")
@@ -241,7 +225,7 @@ if st.sidebar.button("🚪 Terminar sesión", help="Cerrar sesión y salir de la
     st.session_state.username = ""
     st.session_state.user_role = ""
     st.rerun()
-    
+
 # Registrar vista del curso
 if "viewed_course" not in st.session_state or st.session_state["viewed_course"] != curso["Codificación"]:
     register_log(st.session_state["username"], f"view_course: {curso['Codificación']}")
