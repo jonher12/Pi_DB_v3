@@ -24,7 +24,95 @@ USERS_SHEET_ID = st.secrets["USERS_SHEET_ID"].strip()
 LOG_SHEET_ID = st.secrets["LOG_SHEET_ID"].strip()
 
 # 🔐 Funciones
-# ... (rest of the code remains unchanged)
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def connect_worksheet(sheet_id, worksheet_name):
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive"
+    ]
+    credentials = Credentials.from_service_account_info(
+        st.secrets["google_service_account"],
+        scopes=scopes
+    )
+    client = gspread.authorize(credentials)
+    return client.open_by_key(sheet_id).worksheet(worksheet_name)
+
+def verify_login(username, input_password):
+    sheet = connect_worksheet(USERS_SHEET_ID, "users")
+    records = sheet.get_all_records()
+    input_hash = hash_password(input_password)
+    for row in records:
+        if row["Username"] == username and row["Password"] == input_hash:
+            st.session_state["user_role"] = row.get("Role", "user")
+            st.session_state["username"] = username
+            register_log(username, "login")
+            return True
+    return False
+
+def update_password(username, new_password):
+    sheet = connect_worksheet(USERS_SHEET_ID, "users")
+    records = sheet.get_all_records()
+    for i, row in enumerate(records):
+        if row["Username"] == username:
+            sheet.update_cell(i + 2, 2, hash_password(new_password))
+            register_log(username, "password_reset")
+            return True
+    return False
+
+def register_log(username, action, role=""):
+    try:
+        sheet = connect_worksheet(LOG_SHEET_ID, "logs")
+        ast = pytz.timezone("America/Puerto_Rico")
+        now = datetime.now(ast).strftime("%Y-%m-%d %H:%M:%S")
+        sheet.append_row([now, username, action, role])
+    except Exception as e:
+        st.warning(f"⚠️ No se pudo registrar el log: {e}")
+
+def load_sheet(sheet_id):
+    url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+    try:
+        response = urllib.request.urlopen(url)
+        if response.status != 200:
+            st.error(f"❌ No se pudo acceder al Google Sheet. Código: {response.status}")
+            return pd.DataFrame()
+        df = pd.read_csv(url)
+        for col in ["Créditos", "HorasContacto", "Año", "Semestre"]:
+            if col in df.columns:
+                try:
+                    df[col] = df[col].fillna(0).astype(int)
+                except:
+                    df[col] = df[col].astype(str)
+        return df
+    except Exception as e:
+        st.error(f"❌ Error al intentar leer Google Sheet: {e}")
+        return pd.DataFrame()
+
+def update_course_field(sheet_id, cod, column_name, new_value):
+    try:
+        worksheet_name = "tblMaster" if programa == "PharmD" else "tblMasterPhD"
+        sheet = connect_worksheet(sheet_id, worksheet_name)
+        data = sheet.get_all_records()
+        headers = data[0].keys() if data else sheet.row_values(1)
+        for i, row in enumerate(data):
+            if row["Codificación"] == cod:
+                row_num = i + 2
+                col_index = list(headers).index(column_name) + 1
+                sheet.update_cell(row_num, col_index, new_value)
+
+                pr_time = datetime.now(pytz.timezone("America/Puerto_Rico")).strftime("%Y-%m-%d %H:%M:%S")
+                mod_col = list(headers).index("ÚltimaModificaciónPor") + 1
+                date_col = list(headers).index("FechaÚltimaModificación") + 1
+                sheet.update_cell(row_num, mod_col, st.session_state["username"])
+                sheet.update_cell(row_num, date_col, pr_time)
+
+                register_log(st.session_state["username"], f"edit: {cod} - {column_name}")
+                break
+    except Exception as e:
+        st.warning(f"⚠️ No se pudo actualizar el curso: {e}")
+
+# (A partir de aquí se continúa con la parte que incluía el usuario y se había omitido antes)
 
     # Cargar datos
     df = load_sheet(SHEET_IDS[programa])
