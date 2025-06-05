@@ -312,7 +312,7 @@ with col2:
     
     st.markdown("""
     <div style='color: red; font-weight: bold; margin-bottom: 0.5rem;'>
-    ⚠️ Cualquier cambio en la descripción o los comentarios será guardado permanentemente.
+    ⚠️ Cualquier cambio en la descripción será guardado permanentemente.</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -321,6 +321,12 @@ with col2:
         update_course_field(SHEET_IDS[programa], curso["Codificación"], "Descripción", descripcion)
 
     st.markdown("### 🗒️ Comentarios")
+    st.markdown("""
+    <div style='color: red; font-weight: bold; margin-bottom: 0.5rem;'>
+    ⚠️ <span style='color: red;'>Cualquier cambio en los comentarios será guardado permanentemente.</span>
+    </div>
+    """, unsafe_allow_html=True)
+    
     comentarios = st.text_area("Comentarios", value=curso["Comentarios"], height=300)
     if comentarios != curso["Comentarios"]:
         update_course_field(SHEET_IDS[programa], curso["Codificación"], "Comentarios", comentarios)
