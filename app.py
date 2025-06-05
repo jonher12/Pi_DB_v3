@@ -123,42 +123,36 @@ if not st.session_state.logged_in:
     st.markdown("""
     <style>
     .main-box {
-        max-width: 800px;
+        max-width: 850px;
         margin: 0 auto;
-        padding: 30px 40px;
+        padding: 35px 35px 20px 35px;
         border: 1px solid #ddd;
         border-radius: 15px;
         background-color: #ffffff;
-        box-shadow: 0 0 25px rgba(0,0,0,0.06);
+        box-shadow: 0 0 20px rgba(0,0,0,0.05);
     }
-    .header-flex {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-    .header-title {
+    .title {
         text-align: center;
         font-size: 48px;
         font-weight: bold;
-        margin: 20px 0;
+        margin: 10px 0 20px 0;
     }
     </style>
-    <div class="main-box">
+    <div class='main-box'>
     """, unsafe_allow_html=True)
 
-    # Logos con Streamlit (fuera de HTML)
-    logo_col1, title_col, logo_col2 = st.columns([1, 2, 1])
-    with logo_col1:
+    # Logos y título
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col1:
         st.image("logo_rcm.png", width=120)
-    with logo_col2:
+    with col3:
         st.image("logo_farmacia.png", width=160)
-    with title_col:
-        st.markdown('<div class="header-title">Bienvenido a Pi v3</div>', unsafe_allow_html=True)
+    with col2:
+        st.markdown('<div class="title">Bienvenido a Pi v3</div>', unsafe_allow_html=True)
 
     st.markdown("<hr style='margin-top: 10px;'>", unsafe_allow_html=True)
 
-    # Login
+    # Login form
     st.markdown("### 🔐 Iniciar sesión")
     with st.form("login_form"):
         user = st.text_input("Usuario:")
@@ -187,14 +181,16 @@ if not st.session_state.logged_in:
                 else:
                     st.error("❌ Usuario no encontrado.")
 
+    # Pie dentro del mismo contenedor
     st.markdown("""
-    <div style='text-align: center; margin-top: 15px; font-size: small;'>
+    <div style='text-align: center; margin-top: 20px; font-size: small;'>
         División de Evaluación de la Efectividad Curricular e Institucional.<br>
         Todos los derechos reservados. JHA 2025©.<br>
         Administrador: Jonathan Hernández-Agosto, EdD, GCG.
     </div>
     </div>
     """, unsafe_allow_html=True)
+
     st.stop()
 
 # App body
