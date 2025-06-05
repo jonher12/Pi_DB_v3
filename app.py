@@ -119,78 +119,50 @@ def update_course_field(sheet_id, cod, column_name, new_value):
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-if not st.session_state.logged_in:
-    st.markdown("""
-    <style>
-    .main-box {
-        max-width: 850px;
-        margin: 0 auto;
-        padding: 35px 35px 20px 35px;
-        border: 1px solid #ddd;
-        border-radius: 15px;
-        background-color: #ffffff;
-        box-shadow: 0 0 20px rgba(0,0,0,0.05);
-    }
-    .title {
-        text-align: center;
-        font-size: 48px;
-        font-weight: bold;
-        margin: 10px 0 20px 0;
-    }
-    </style>
-    <div class='main-box'>
-    """, unsafe_allow_html=True)
-
-    # Logos y título
-    col1, col2, col3 = st.columns([1, 2, 1])
+if not st.session_state.logged_in: 
+    # Encabezado con logos
+    empty_col, col1, col2, col3 = st.columns([0.8, 0.7, 2, 1])
     with col1:
         st.image("logo_rcm.png", width=120)
+    with col2:
+        st.markdown("<h1 style='margin-left: 100px; font-size: 70px;'>Bienvenido a Pi v3</h1>", unsafe_allow_html=True)
     with col3:
         st.image("logo_farmacia.png", width=160)
-    with col2:
-        st.markdown('<div class="title">Bienvenido a Pi v3</div>', unsafe_allow_html=True)
+    st.markdown("<hr style='margin-top: -10px;'>", unsafe_allow_html=True)
 
-    st.markdown("<hr style='margin-top: 10px;'>", unsafe_allow_html=True)
-
-    # Login form
-    st.markdown("### 🔐 Iniciar sesión")
-    with st.form("login_form"):
-        user = st.text_input("Usuario:")
-        password = st.text_input("Contraseña:", type="password")
-        login_btn = st.form_submit_button("Ingresar")
-        if login_btn:
-            if verify_login(user, password):
-                st.session_state.logged_in = True
-                st.success("✅ Bienvenido")
-                st.rerun()
-            else:
-                st.error("❌ Usuario o contraseña incorrectos.")
-
-    with st.expander("🔑 ¿Olvidaste tu contraseña?"):
-        username_reset = st.text_input("Usuario:", key="reset_user")
-        new_pw = st.text_input("Nueva contraseña", type="password", key="new_pw")
-        confirm_pw = st.text_input("Confirmar contraseña", type="password", key="confirm_pw")
-        if st.button("Actualizar contraseña"):
-            if not username_reset:
-                st.warning("⚠️ Ingresa tu usuario.")
-            elif new_pw != confirm_pw:
-                st.warning("⚠️ Las contraseñas no coinciden.")
-            else:
-                if update_password(username_reset, new_pw):
-                    st.success("✅ Contraseña actualizada.")
-                else:
-                    st.error("❌ Usuario no encontrado.")
-
-    # Pie dentro del mismo contenedor
-    st.markdown("""
-    <div style='text-align: center; margin-top: 20px; font-size: small;'>
-        División de Evaluación de la Efectividad Curricular e Institucional.<br>
-        Todos los derechos reservados. JHA 2025©.<br>
-        Administrador: Jonathan Hernández-Agosto, EdD, GCG.
-    </div>
-    </div>
-    """, unsafe_allow_html=True)
-
+    col_a, col_b, col_c = st.columns([2, 1.2, 2])
+    with col_b:
+        with st.container(border=True):
+            st.markdown("### 🔐 Iniciar sesión")
+            with st.form("login_form"):
+                user = st.text_input("Usuario:")
+                password = st.text_input("Contraseña:", type="password")
+                login_btn = st.form_submit_button("Ingresar")
+                if login_btn:
+                    if verify_login(user, password):
+                        st.session_state.logged_in = True
+                        st.success("✅ Bienvenido")
+                        st.rerun()
+                    else:
+                        st.error("❌ Usuario o contraseña incorrectos.")
+            with st.expander("🔑 ¿Olvidaste tu contraseña?"):
+                username_reset = st.text_input("Usuario:", key="reset_user")
+                new_pw = st.text_input("Nueva contraseña", type="password", key="new_pw")
+                confirm_pw = st.text_input("Confirmar contraseña", type="password", key="confirm_pw")
+                if st.button("Actualizar contraseña"):
+                    if not username_reset:
+                        st.warning("⚠️ Ingresa tu usuario.")
+                    elif new_pw != confirm_pw:
+                        st.warning("⚠️ Las contraseñas no coinciden.")
+                    else:
+                        if update_password(username_reset, new_pw):
+                            st.success("✅ Contraseña actualizada.")
+                        else:
+                            st.error("❌ Usuario no encontrado.")
+        st.markdown("<div style='text-align: center; margin-top: 10px;'>"
+                    "<small>División de Evaluación de la Efectividad Curricular e Institucional. "
+                    "Todos los derechos reservados. JHA 2025©. Administrador: Jonathan Hernández-Agosto, EdD, GCG.</small></div>",
+                    unsafe_allow_html=True)
     st.stop()
 
 # App body
