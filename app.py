@@ -187,6 +187,7 @@ tipo_filtro = st.sidebar.radio(
 
 df_filtrado = df.copy()
 curso = None
+palabra_clave = ""  # inicializa por si no aplica
 
 if tipo_filtro == "Por código":
     codigo_sel = st.sidebar.selectbox("Selecciona el código del curso:", sorted(df["Codificación"].dropna().unique()))
@@ -211,23 +212,30 @@ elif tipo_filtro == "🔍 Búsqueda Avanzada":
     campo_sel = st.sidebar.selectbox("Buscar en:", columnas_busqueda, index=1)
     palabra_clave = st.sidebar.text_input("Ingresa una palabra clave:")
 
-    if campo_sel and palabra_clave:
+    if campo_sel and palabra_clave.strip() != "":
         palabra_clave_lower = palabra_clave.lower()
         df_filtrado = df[df[campo_sel].astype(str).str.lower().str.contains(palabra_clave_lower)]
-        st.sidebar.success(f"📌 Búsqueda de _{palabra_clave}_ en **{campo_sel}**")
-        register_log(st.session_state["username"], f"search: {campo_sel} ~ {palabra_clave}")
+        if not df_filtrado.empty:
+            st.sidebar.success(f"📌 Búsqueda de _{palabra_clave}_ en **{campo_sel}**")
+            register_log(st.session_state["username"], f"search: {campo_sel} ~ {palabra_clave}")
 
 # Validar resultado
 if not df_filtrado.empty:
     if len(df_filtrado) == 1:
         curso = df_filtrado.iloc[0]
-    elif tipo_filtro == "🔍 Búsqueda Avanzada":
+
+    elif tipo_filtro == "🔍 Búsqueda Avanzada" and palabra_clave.strip() != "":
         opciones = df_filtrado["Codificación"] + " — " + df_filtrado["TítuloCompletoEspañol"]
-        seleccion = st.selectbox("Selecciona el curso que deseas consultar:", opciones)
+        st.markdown("### Selecciona el curso que deseas consultar:")
+        seleccion = st.selectbox("", opciones, key="dropdown_b_avanzada")
         cod_seleccionado = seleccion.split(" — ")[0]
         curso = df_filtrado[df_filtrado["Codificación"] == cod_seleccionado].iloc[0]
+
     else:
-        curso = df_filtrado.iloc[0]  # Para búsquedas por código o título, donde hay múltiples coincidencias iguales (raro pero posible)
+        curso = df_filtrado.iloc[0]
+else:
+    st.warning("⚠️ No se encontraron cursos con ese filtro.")
+    st.stop()
 
 # --- Botón de Cerrar Sesión ---
 st.sidebar.markdown("---")
