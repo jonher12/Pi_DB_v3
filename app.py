@@ -178,6 +178,10 @@ elif programa != st.session_state["last_programa"]:
     register_log(st.session_state["username"], f"switch_program: {st.session_state['last_programa']} → {programa}")
     st.session_state["last_programa"] = programa
 
+# Reiniciar campos de búsqueda avanzada al cambiar de programa
+st.session_state.pop("palabra_clave", None)
+st.session_state.pop("campo_sel", None)
+
 # ✅ FILTROS DINÁMICOS AQUÍ
 st.sidebar.markdown("## 🎯 Filtros de Búsqueda Dinámicos")
 tipo_filtro = st.sidebar.radio(
@@ -210,8 +214,8 @@ elif tipo_filtro == "🔍 Búsqueda Avanzada":
         "Codificación", "TítuloCompletoEspañol", "TítuloCompletoInglés",
         "Descripción", "Comentarios", "AnejosComentarios", "CursosPrerrequisitos", "CursosCorrequisitos"
     ]
-    campo_sel = st.sidebar.selectbox("Buscar en:", columnas_busqueda, index=1)
-    palabra_clave = st.sidebar.text_input("Ingresa una palabra clave:")
+    campo_sel = st.sidebar.selectbox("Buscar en:", columnas_busqueda, index=1, key="campo_sel")
+    palabra_clave = st.sidebar.text_input("Ingresa una palabra clave:", key="palabra_clave")
 
     if campo_sel and palabra_clave.strip() != "":
         def normalizar(texto):
