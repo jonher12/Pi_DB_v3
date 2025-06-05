@@ -254,10 +254,14 @@ st.markdown("---")
 
 # 🎯 Mostrar dropdown SOLO si aplica, debajo del encabezado
 if mostrar_dropdown and len(opciones_dropdown) > 1:
-    st.markdown("<h3 style='color: red; margin-bottom: 0.2rem;'>Selecciona el curso que deseas consultar:</h3>", unsafe_allow_html=True)
-    st.markdown("<div style='margin-top: -0.8rem;'>", unsafe_allow_html=True)
+    st.markdown("""
+        <h3 style='color: red; margin-bottom: -0.3rem; padding-bottom: 0;'>Selecciona el curso que deseas consultar:</h3>
+        <div style='margin-top: -1.1rem;'>
+    """, unsafe_allow_html=True)
+    
     seleccion = st.selectbox("", opciones_dropdown, key="dropdown_b_avanzada")
-    st.markdown("</div><br><br>", unsafe_allow_html=True)
+    
+    st.markdown("</div><div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
 
     cod_seleccionado = seleccion.split(" — ")[0]
     curso = df_filtrado[df_filtrado["Codificación"] == cod_seleccionado].iloc[0]
