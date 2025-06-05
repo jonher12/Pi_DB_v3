@@ -6,6 +6,7 @@ from google.oauth2.service_account import Credentials
 import hashlib
 from datetime import datetime
 import pytz
+import unicodedata
 
 st.set_page_config(page_title="📘 Pi DB v3", layout="wide")
 
@@ -213,8 +214,10 @@ elif tipo_filtro == "🔍 Búsqueda Avanzada":
     palabra_clave = st.sidebar.text_input("Ingresa una palabra clave:")
 
     if campo_sel and palabra_clave.strip() != "":
-        palabra_clave_lower = palabra_clave.lower()
-        df_filtrado = df[df[campo_sel].astype(str).str.lower().str.contains(palabra_clave_lower)]
+        def normalizar(texto):
+            return unicodedata.normalize("NFKD", str(texto)).encode("ASCII", "ignore").decode("utf-8").lower()
+
+        df_filtrado = df[df[campo_sel].astype(str).apply(normalizar).str.contains(normalizar(palabra_clave))]
         if not df_filtrado.empty:
             st.sidebar.success(f"📌 Búsqueda de _{palabra_clave}_ en **{campo_sel}**")
             register_log(st.session_state["username"], f"search: {campo_sel} ~ {palabra_clave}")
@@ -251,10 +254,14 @@ st.markdown("---")
 
 # 🎯 Mostrar dropdown SOLO si aplica, debajo del encabezado
 if mostrar_dropdown and len(opciones_dropdown) > 1:
-    st.markdown("### Selecciona el curso que deseas consultar:")
+    st.markdown("<h3 style='color: red; margin-bottom: 0.2rem;'>Selecciona el curso que deseas consultar:</h3>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-top: -0.8rem;'>", unsafe_allow_html=True)
     seleccion = st.selectbox("", opciones_dropdown, key="dropdown_b_avanzada")
+    st.markdown("</div><br><br>", unsafe_allow_html=True)
+
     cod_seleccionado = seleccion.split(" — ")[0]
     curso = df_filtrado[df_filtrado["Codificación"] == cod_seleccionado].iloc[0]
+
 elif mostrar_dropdown and len(opciones_dropdown) == 1:
     curso = df_filtrado.iloc[0]
 
