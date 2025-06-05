@@ -119,35 +119,43 @@ def update_course_field(sheet_id, cod, column_name, new_value):
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-if not st.session_state.logged_in: 
-    # Contenedor visual principal
+if not st.session_state.logged_in:
     st.markdown("""
     <style>
     .main-box {
-        max-width: 950px;
+        max-width: 700px;
         margin: 0 auto;
-        padding: 30px 40px;
+        padding: 40px 30px;
         border: 1px solid #ddd;
         border-radius: 15px;
-        background-color: #fff;
-        box-shadow: 0 0 25px rgba(0,0,0,0.05);
+        background-color: #ffffff;
+        box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    }
+    .logo-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .logo-header img {
+        height: 90px;
+    }
+    .title-center {
+        text-align: center;
+        font-size: 45px;
+        font-weight: 700;
+        margin: 10px 0 20px 0;
     }
     </style>
-    <div class='main-box'>
+
+    <div class="main-box">
+        <div class="logo-header">
+            <img src="logo_rcm.png">
+            <img src="logo_farmacia.png">
+        </div>
+        <div class="title-center">Bienvenido a Pi v3</div>
     """, unsafe_allow_html=True)
 
-    # Logos + título centrado
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col1:
-        st.image("logo_rcm.png", width=120)
-    with col2:
-        st.markdown("<h1 style='text-align: center; font-size: 60px; margin-bottom: 0;'>Bienvenido a Pi v3</h1>", unsafe_allow_html=True)
-    with col3:
-        st.image("logo_farmacia.png", width=160)
-
-    st.markdown("<hr style='margin-top: 5px;'>", unsafe_allow_html=True)
-
-    # Login centrado dentro del bloque general
     st.markdown("### 🔐 Iniciar sesión")
     with st.form("login_form"):
         user = st.text_input("Usuario:")
@@ -176,13 +184,14 @@ if not st.session_state.logged_in:
                 else:
                     st.error("❌ Usuario no encontrado.")
 
-    # Pie institucional dentro del cuadro
-    st.markdown("<div style='text-align: center; margin-top: 15px;'>"
-                "<small>División de Evaluación de la Efectividad Curricular e Institucional. "
-                "Todos los derechos reservados. JHA 2025©. Administrador: Jonathan Hernández-Agosto, EdD, GCG.</small></div>",
-                unsafe_allow_html=True)
-
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("""
+        <div style='text-align: center; margin-top: 20px;'>
+        <small>División de Evaluación de la Efectividad Curricular e Institucional.<br>
+        Todos los derechos reservados. JHA 2025©.<br>
+        Administrador: Jonathan Hernández-Agosto, EdD, GCG.</small>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     st.stop()
 
 # App body
