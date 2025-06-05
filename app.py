@@ -120,15 +120,33 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in: 
+    # Encabezado completo dentro de un contenedor visual
+    st.markdown("""
+    <style>
+    .main-box {
+        max-width: 850px;
+        margin: 0 auto;
+        padding: 40px 40px 30px 40px;
+        border: 1px solid #ddd;
+        border-radius: 15px;
+        background-color: #ffffff;
+        box-shadow: 0 0 25px rgba(0,0,0,0.07);
+    }
+    </style>
+    <div class='main-box'>
+    """, unsafe_allow_html=True)
+
     # Encabezado con logos
-    empty_col, col1, col2, col3 = st.columns([0.8, 0.7, 2, 1])
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col1:
         st.image("logo_rcm.png", width=120)
     with col2:
-        st.markdown("<h1 style='margin-left: 100px; font-size: 70px;'>Bienvenido a Pi v3</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center; font-size: 60px; margin-bottom: 0;'>Bienvenido a Pi v3</h1>", unsafe_allow_html=True)
     with col3:
         st.image("logo_farmacia.png", width=160)
-    st.markdown("<hr style='margin-top: -10px;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='margin-top: 5px;'>", unsafe_allow_html=True)
+    
+    st.markdown("</div>", unsafe_allow_html=True)
 
     col_a, col_b, col_c = st.columns([2, 1.2, 2])
     with col_b:
