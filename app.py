@@ -171,12 +171,16 @@ programa = st.sidebar.radio("Selecciona el Programa:", ["PharmD", "PhD"], key="p
 df = load_sheet(SHEET_IDS[programa])
 df_links = load_sheet(DRIVE_LINK_SHEET_ID)
 
-# Registrar cambio de programa
+# Registrar cambio de programa y limpiar campos de búsqueda
 if "last_programa" not in st.session_state:
     st.session_state["last_programa"] = programa
 elif programa != st.session_state["last_programa"]:
     register_log(st.session_state["username"], f"switch_program: {st.session_state['last_programa']} → {programa}")
     st.session_state["last_programa"] = programa
+
+    # 🔄 Limpiar filtros avanzados al cambiar programa
+    st.session_state.pop("dropdown_b_avanzada", None)
+    st.session_state.pop("palabra_clave", None)
 
 # ✅ FILTROS DINÁMICOS AQUÍ
 st.sidebar.markdown("## 🎯 Filtros de Búsqueda Dinámicos")
@@ -211,7 +215,7 @@ elif tipo_filtro == "🔍 Búsqueda Avanzada":
         "Descripción", "Comentarios", "AnejosComentarios", "CursosPrerrequisitos", "CursosCorrequisitos"
     ]
     campo_sel = st.sidebar.selectbox("Buscar en:", columnas_busqueda, index=1)
-    palabra_clave = st.sidebar.text_input("Ingresa una palabra clave:")
+    palabra_clave = st.sidebar.text_input("Ingresa una palabra clave:", key="palabra_clave")
 
     if campo_sel and palabra_clave.strip() != "":
         def normalizar(texto):
