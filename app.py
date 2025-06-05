@@ -129,7 +129,6 @@ if not st.session_state.logged_in:
     </div>
     <hr style='margin-top: 0px;'>
     """, unsafe_allow_html=True)
-    st.markdown("<hr style='margin-top: -10px;'>", unsafe_allow_html=True)
 
     col_a, col_b, col_c = st.columns([2, 1.2, 2])
     # Contenedor central con CSS personalizado para login angosto y centrado
