@@ -171,23 +171,25 @@ programa = st.sidebar.radio("Selecciona el Programa:", ["PharmD", "PhD"], key="p
 df = load_sheet(SHEET_IDS[programa])
 df_links = load_sheet(DRIVE_LINK_SHEET_ID)
 
-# Registrar cambio de programa y limpiar campos de búsqueda
+# Registrar cambio de programa y limpiar filtros
 if "last_programa" not in st.session_state:
     st.session_state["last_programa"] = programa
 elif programa != st.session_state["last_programa"]:
     register_log(st.session_state["username"], f"switch_program: {st.session_state['last_programa']} → {programa}")
     st.session_state["last_programa"] = programa
 
-    # 🔄 Limpiar filtros avanzados al cambiar programa
-    st.session_state.pop("dropdown_b_avanzada", None)
-    st.session_state.pop("palabra_clave", None)
+    # 🔄 Limpiar selección de filtros y búsqueda avanzada
+    for key in ["tipo_filtro", "palabra_clave", "dropdown_b_avanzada"]:
+        if key in st.session_state:
+            del st.session_state[key]
 
 # ✅ FILTROS DINÁMICOS AQUÍ
 st.sidebar.markdown("## 🎯 Filtros de Búsqueda Dinámicos")
 tipo_filtro = st.sidebar.radio(
     "Selecciona el tipo de filtro:",
     ["Por código", "Por título del curso", "🔍 Búsqueda Avanzada"],
-    index=None
+    index=None,
+    key="tipo_filtro"
 )
 
 df_filtrado = df.copy()
