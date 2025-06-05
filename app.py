@@ -219,6 +219,22 @@ elif tipo_filtro == "🔍 Búsqueda Avanzada":
             st.sidebar.success(f"📌 Búsqueda de _{palabra_clave}_ en **{campo_sel}**")
             register_log(st.session_state["username"], f"search: {campo_sel} ~ {palabra_clave}")
 
+# 🔁 Lógica de control para curso y dropdown
+mostrar_dropdown = False
+opciones_dropdown = []
+
+if not df_filtrado.empty:
+    if len(df_filtrado) == 1:
+        curso = df_filtrado.iloc[0]
+    elif tipo_filtro == "🔍 Búsqueda Avanzada" and palabra_clave.strip() != "":
+        opciones_dropdown = df_filtrado["Codificación"] + " — " + df_filtrado["TítuloCompletoEspañol"]
+        mostrar_dropdown = True
+    else:
+        curso = df_filtrado.iloc[0]
+else:
+    st.warning("⚠️ No se encontraron cursos con ese filtro.")
+    st.stop()
+
 # --- Botón de Cerrar Sesión ---
 st.sidebar.markdown("---")
 if st.sidebar.button("🚪 Terminar sesión", help="Cerrar sesión y salir de la aplicación"):
@@ -228,16 +244,12 @@ if st.sidebar.button("🚪 Terminar sesión", help="Cerrar sesión y salir de la
     st.session_state.user_role = ""
     st.rerun()
 
-# Registrar vista del curso
-if "viewed_course" not in st.session_state or st.session_state["viewed_course"] != curso["Codificación"]:
-    register_log(st.session_state["username"], f"view_course: {curso['Codificación']}")
-    st.session_state["viewed_course"] = curso["Codificación"]
-
+# Encabezado visual
 st.markdown("<h1 style='text-align: center;'>Bienvenido a Pi v3</h1>", unsafe_allow_html=True)
 st.markdown(f"<h2 style='text-align: center;'>📚 Base de Datos de Cursos ({programa})</h2>", unsafe_allow_html=True)
 st.markdown("---")
 
-# Mostrar dropdown SOLO si corresponde
+# 🎯 Mostrar dropdown SOLO si aplica, debajo del encabezado
 if mostrar_dropdown and len(opciones_dropdown) > 1:
     st.markdown("### Selecciona el curso que deseas consultar:")
     seleccion = st.selectbox("", opciones_dropdown, key="dropdown_b_avanzada")
@@ -246,6 +258,10 @@ if mostrar_dropdown and len(opciones_dropdown) > 1:
 elif mostrar_dropdown and len(opciones_dropdown) == 1:
     curso = df_filtrado.iloc[0]
 
+# Registrar vista del curso
+if "viewed_course" not in st.session_state or st.session_state["viewed_course"] != curso["Codificación"]:
+    register_log(st.session_state["username"], f"view_course: {curso['Codificación']}")
+    st.session_state["viewed_course"] = curso["Codificación"]
 
 # Detalle del curso
 col1, col2 = st.columns([1, 2])
@@ -267,6 +283,7 @@ with col1:
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("#### 📎 Upload & Download de Documentos")
     folder_row = df_links[(df_links["Codificación"] == curso['Codificación']) & (df_links["Programa"] == programa)]
+    
     if not folder_row.empty:
         folder_id = folder_row.iloc[0]["FolderID"]
         st.markdown(f"[📂 Abrir carpeta del curso {curso['Codificación']}]({f'https://drive.google.com/drive/folders/{folder_id}'})")
