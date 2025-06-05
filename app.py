@@ -123,39 +123,36 @@ if not st.session_state.logged_in:
     st.markdown("""
     <style>
     .main-box {
-        max-width: 700px;
+        max-width: 800px;
         margin: 0 auto;
-        padding: 40px 30px;
+        padding: 30px 30px 20px 30px;
         border: 1px solid #ddd;
         border-radius: 15px;
         background-color: #ffffff;
-        box-shadow: 0 0 20px rgba(0,0,0,0.05);
+        box-shadow: 0 0 25px rgba(0,0,0,0.05);
     }
-    .logo-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-    .logo-header img {
-        height: 90px;
-    }
-    .title-center {
+    .title {
         text-align: center;
-        font-size: 45px;
-        font-weight: 700;
-        margin: 10px 0 20px 0;
+        font-size: 48px;
+        font-weight: bold;
+        margin: 0 0 10px 0;
     }
     </style>
-
     <div class="main-box">
-        <div class="logo-header">
-            <img src="logo_rcm.png">
-            <img src="logo_farmacia.png">
-        </div>
-        <div class="title-center">Bienvenido a Pi v3</div>
     """, unsafe_allow_html=True)
 
+    # Logos en columnas (correctamente cargados)
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col1:
+        st.image("logo_rcm.png", width=120)
+    with col2:
+        st.markdown('<div class="title">Bienvenido a Pi v3</div>', unsafe_allow_html=True)
+    with col3:
+        st.image("logo_farmacia.png", width=160)
+
+    st.markdown("<hr style='margin-top: 10px;'>", unsafe_allow_html=True)
+
+    # Login form
     st.markdown("### 🔐 Iniciar sesión")
     with st.form("login_form"):
         user = st.text_input("Usuario:")
@@ -185,11 +182,11 @@ if not st.session_state.logged_in:
                     st.error("❌ Usuario no encontrado.")
 
     st.markdown("""
-        <div style='text-align: center; margin-top: 20px;'>
-        <small>División de Evaluación de la Efectividad Curricular e Institucional.<br>
+    <div style='text-align: center; margin-top: 15px; font-size: small;'>
+        División de Evaluación de la Efectividad Curricular e Institucional.<br>
         Todos los derechos reservados. JHA 2025©.<br>
-        Administrador: Jonathan Hernández-Agosto, EdD, GCG.</small>
-        </div>
+        Administrador: Jonathan Hernández-Agosto, EdD, GCG.
+    </div>
     </div>
     """, unsafe_allow_html=True)
     st.stop()
