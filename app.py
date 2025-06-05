@@ -221,16 +221,13 @@ elif tipo_filtro == "🔍 Búsqueda Avanzada":
 if not df_filtrado.empty:
     if len(df_filtrado) == 1:
         curso = df_filtrado.iloc[0]
-    else:
+    elif tipo_filtro == "🔍 Búsqueda Avanzada":
         opciones = df_filtrado["Codificación"] + " — " + df_filtrado["TítuloCompletoEspañol"]
         seleccion = st.selectbox("Selecciona el curso que deseas consultar:", opciones)
-
-        # Extraer codificación del string seleccionado
         cod_seleccionado = seleccion.split(" — ")[0]
         curso = df_filtrado[df_filtrado["Codificación"] == cod_seleccionado].iloc[0]
-else:
-    st.warning("⚠️ No se encontraron cursos con ese filtro.")
-    st.stop()
+    else:
+        curso = df_filtrado.iloc[0]  # Para búsquedas por código o título, donde hay múltiples coincidencias iguales (raro pero posible)
 
 # --- Botón de Cerrar Sesión ---
 st.sidebar.markdown("---")
