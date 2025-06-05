@@ -219,24 +219,6 @@ elif tipo_filtro == "🔍 Búsqueda Avanzada":
             st.sidebar.success(f"📌 Búsqueda de _{palabra_clave}_ en **{campo_sel}**")
             register_log(st.session_state["username"], f"search: {campo_sel} ~ {palabra_clave}")
 
-# Validar resultado
-if not df_filtrado.empty:
-    if len(df_filtrado) == 1:
-        curso = df_filtrado.iloc[0]
-
-    elif tipo_filtro == "🔍 Búsqueda Avanzada" and palabra_clave.strip() != "":
-        opciones = df_filtrado["Codificación"] + " — " + df_filtrado["TítuloCompletoEspañol"]
-        st.markdown("### Selecciona el curso que deseas consultar:")
-        seleccion = st.selectbox("", opciones, key="dropdown_b_avanzada")
-        cod_seleccionado = seleccion.split(" — ")[0]
-        curso = df_filtrado[df_filtrado["Codificación"] == cod_seleccionado].iloc[0]
-
-    else:
-        curso = df_filtrado.iloc[0]
-else:
-    st.warning("⚠️ No se encontraron cursos con ese filtro.")
-    st.stop()
-
 # --- Botón de Cerrar Sesión ---
 st.sidebar.markdown("---")
 if st.sidebar.button("🚪 Terminar sesión", help="Cerrar sesión y salir de la aplicación"):
@@ -254,6 +236,16 @@ if "viewed_course" not in st.session_state or st.session_state["viewed_course"] 
 st.markdown("<h1 style='text-align: center;'>Bienvenido a Pi v3</h1>", unsafe_allow_html=True)
 st.markdown(f"<h2 style='text-align: center;'>📚 Base de Datos de Cursos ({programa})</h2>", unsafe_allow_html=True)
 st.markdown("---")
+
+# Mostrar dropdown SOLO si corresponde
+if mostrar_dropdown and len(opciones_dropdown) > 1:
+    st.markdown("### Selecciona el curso que deseas consultar:")
+    seleccion = st.selectbox("", opciones_dropdown, key="dropdown_b_avanzada")
+    cod_seleccionado = seleccion.split(" — ")[0]
+    curso = df_filtrado[df_filtrado["Codificación"] == cod_seleccionado].iloc[0]
+elif mostrar_dropdown and len(opciones_dropdown) == 1:
+    curso = df_filtrado.iloc[0]
+
 
 # Detalle del curso
 col1, col2 = st.columns([1, 2])
