@@ -309,6 +309,13 @@ with col1:
 
 with col2:
     st.markdown("### 📝 Descripción del Curso")
+    
+    st.markdown("""
+    <div style='color: red; font-weight: bold; margin-bottom: 0.5rem;'>
+    ⚠️ Cualquier cambio en la descripción o los comentarios será guardado permanentemente.
+    </div>
+    """, unsafe_allow_html=True)
+
     descripcion = st.text_area("Descripción", value=curso["Descripción"], height=300)
     if descripcion != curso["Descripción"]:
         update_course_field(SHEET_IDS[programa], curso["Codificación"], "Descripción", descripcion)
