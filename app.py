@@ -121,13 +121,14 @@ if "logged_in" not in st.session_state:
 
 if not st.session_state.logged_in: 
     # Encabezado con logos
-    empty_col, col1, col2, col3 = st.columns([0.8, 0.7, 2, 1])
-    with col1:
-        st.image("logo_rcm.png", width=120)
-    with col2:
-        st.markdown("<h1 style='margin-left: 100px; font-size: 70px;'>Bienvenido a Pi v3</h1>", unsafe_allow_html=True)
-    with col3:
-        st.image("logo_farmacia.png", width=160)
+    st.markdown("""
+    <div style='display: flex; justify-content: center; align-items: center; gap: 40px; margin-top: 10px; margin-bottom: -10px;'>
+        <img src='logo_rcm.png' width='120'>
+        <h1 style='margin: 0; font-size: 60px;'>Bienvenido a Pi v3</h1>
+        <img src='logo_farmacia.png' width='160'>
+    </div>
+    <hr style='margin-top: 0px;'>
+    """, unsafe_allow_html=True)
     st.markdown("<hr style='margin-top: -10px;'>", unsafe_allow_html=True)
 
     col_a, col_b, col_c = st.columns([2, 1.2, 2])
