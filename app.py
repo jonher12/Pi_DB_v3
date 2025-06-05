@@ -172,11 +172,13 @@ df = load_sheet(SHEET_IDS[programa])
 df_links = load_sheet(DRIVE_LINK_SHEET_ID)
 
 # Registrar cambio de programa
+# Registrar cambio de programa
 if "last_programa" not in st.session_state:
     st.session_state["last_programa"] = programa
 elif programa != st.session_state["last_programa"]:
     register_log(st.session_state["username"], f"switch_program: {st.session_state['last_programa']} → {programa}")
     st.session_state["last_programa"] = programa
+    st.session_state["reset_filters"] = True  # 🔁 marcar que debe resetear
 
 # Reiniciar campos de búsqueda avanzada al cambiar de programa
 st.session_state.pop("palabra_clave", None)
@@ -207,6 +209,11 @@ elif tipo_filtro == "Por título del curso":
         df_filtrado = df[df["TítuloCompletoEspañol"] == titulo_sel]
         st.sidebar.success(f"📌 Título seleccionado: **{titulo_sel}**")
         register_log(st.session_state["username"], f"search: title = {titulo_sel}")
+
+if st.session_state.get("reset_filters"):
+    st.session_state["palabra_clave"] = ""
+    st.session_state["campo_sel"] = "TítuloCompletoEspañol"
+    st.session_state["reset_filters"] = False
 
 elif tipo_filtro == "🔍 Búsqueda Avanzada":
     st.sidebar.markdown("### 🔍 Búsqueda Avanzada")
