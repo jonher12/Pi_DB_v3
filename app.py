@@ -130,7 +130,7 @@ if not st.session_state.logged_in:
         st.image("logo_farmacia.png", width=160)
     st.markdown("<hr style='margin-top: -10px;'>", unsafe_allow_html=True)
 
-    col_a, col_b, col_c = st.columns([1, 2, 1])
+    col_a, col_b, col_c = st.columns([2.5, 1, 2.5])
     with col_b:
         with st.container(border=True):
             st.markdown("### 🔐 Iniciar sesión")
