@@ -178,6 +178,10 @@ elif programa != st.session_state["last_programa"]:
     register_log(st.session_state["username"], f"switch_program: {st.session_state['last_programa']} → {programa}")
     st.session_state["last_programa"] = programa
 
+# Reiniciar campos de búsqueda avanzada al cambiar de programa
+st.session_state.pop("palabra_clave", None)
+st.session_state.pop("campo_sel", None)
+
 # ✅ FILTROS DINÁMICOS AQUÍ
 st.sidebar.markdown("## 🎯 Filtros de Búsqueda Dinámicos")
 tipo_filtro = st.sidebar.radio(
@@ -210,8 +214,8 @@ elif tipo_filtro == "🔍 Búsqueda Avanzada":
         "Codificación", "TítuloCompletoEspañol", "TítuloCompletoInglés",
         "Descripción", "Comentarios", "AnejosComentarios", "CursosPrerrequisitos", "CursosCorrequisitos"
     ]
-    campo_sel = st.sidebar.selectbox("Buscar en:", columnas_busqueda, index=1)
-    palabra_clave = st.sidebar.text_input("Ingresa una palabra clave:")
+    campo_sel = st.sidebar.selectbox("Buscar en:", columnas_busqueda, index=1, key="campo_sel")
+    palabra_clave = st.sidebar.text_input("Ingresa una palabra clave:", key="palabra_clave")
 
     if campo_sel and palabra_clave.strip() != "":
         def normalizar(texto):
@@ -254,10 +258,14 @@ st.markdown("---")
 
 # 🎯 Mostrar dropdown SOLO si aplica, debajo del encabezado
 if mostrar_dropdown and len(opciones_dropdown) > 1:
-    st.markdown("<h3 style='color: red; margin-bottom: 0.2rem;'>Selecciona el curso que deseas consultar:</h3>", unsafe_allow_html=True)
-    st.markdown("<div style='margin-top: -0.8rem;'>", unsafe_allow_html=True)
+    st.markdown("""
+        <h3 style='color: red; margin-bottom: -0.3rem; padding-bottom: 0;'>Selecciona el curso que deseas consultar:</h3>
+        <div style='margin-top: -1.1rem;'>
+    """, unsafe_allow_html=True)
+    
     seleccion = st.selectbox("", opciones_dropdown, key="dropdown_b_avanzada")
-    st.markdown("</div><br><br>", unsafe_allow_html=True)
+    
+    st.markdown("</div><div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
 
     cod_seleccionado = seleccion.split(" — ")[0]
     curso = df_filtrado[df_filtrado["Codificación"] == cod_seleccionado].iloc[0]
