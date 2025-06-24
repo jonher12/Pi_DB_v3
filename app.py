@@ -307,67 +307,6 @@ with col1:
     else:
         st.warning("⚠️ No se encontró el enlace directo para este curso.")
 
-    # ---------------------------------------------
-    # 🚀 Chatbot RAG local SIN LLM
-    # ---------------------------------------------
-    import re
-
-    st.markdown("### 🤖 Asistente Virtual del Curso (RAG)")
-    st.info("Pregunta sobre requisitos, créditos, descripción, o documentos. El asistente buscará coincidencias en la tabla y te sugerirá links de Drive.")
-
-    # Inicializa historial de chat
-    if "rag_chat" not in st.session_state:
-        st.session_state.rag_chat = []
-
-    # Mostrar historial
-    for msg in st.session_state.rag_chat:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
-
-    # Input del usuario
-    query = st.chat_input("Escribe tu pregunta...")
-
-    if query:
-        st.session_state.rag_chat.append({"role": "user", "content": query})
-
-        # 1️⃣ Busca coincidencias en columnas clave del curso
-        coincidencias = []
-        for col in [
-            "Codificación", "TítuloCompletoEspañol", "TítuloCompletoInglés",
-            "Descripción", "Comentarios", "AnejosComentarios",
-            "CursosPrerrequisitos", "CursosCorrequisitos"
-        ]:
-            valor = str(curso[col])
-            if re.search(rf"{re.escape(query.lower())}", valor.lower()):
-                coincidencias.append(f"**{col}**: {valor}")
-
-        # 2️⃣ Sugerir carpeta Drive
-        folder_row = df_links[(df_links["Codificación"] == curso['Codificación']) & (df_links["Programa"] == programa)]
-        if not folder_row.empty:
-            folder_id = folder_row.iloc[0]["FolderID"]
-            drive_link = f"📂 [Abrir carpeta del curso en Drive](https://drive.google.com/drive/folders/{folder_id})"
-        else:
-            drive_link = "⚠️ No se encontró la carpeta del curso."
-
-        # 3️⃣ Construir respuesta final
-        if coincidencias:
-            rag_response = (
-                "🔎 **Coincidencias encontradas:**\n\n" +
-                "\n\n".join(coincidencias) +
-                "\n\n" + drive_link
-            )
-        else:
-            rag_response = (
-                "No encontré coincidencias exactas en la tabla para tu pregunta.\n\n" +
-                "Puedes consultar los documentos aquí:\n\n" + drive_link
-            )
-
-        # Añadir al historial
-        st.session_state.rag_chat.append({"role": "assistant", "content": rag_response})
-
-        # Registrar log
-        register_log(st.session_state["username"], f"chatbot_query: {query}")
-
 with col2:
     st.markdown("### 📝 Descripción del Curso")
     
