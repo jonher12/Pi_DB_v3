@@ -334,3 +334,68 @@ with col2:
 # Pie de página
 st.markdown("---")
 st.caption("División de Evaluación de la Efectividad Curricular e Institucional. Todos los derechos reservados. JHA 2025©. Administrador: Jonathan Hernández-Agosto, EdD, GCG.")
+
+# === BLOQUE FINAL: CHATBOT RAG SEMÁNTICO ===
+from sentence_transformers import SentenceTransformer
+import faiss
+from pathlib import Path
+
+# --- Define ruta del índice y CSV ---
+output_path = Path(r"G:\My Drive\Shiny_Pi")
+INDEX_PATH = output_path / "pi_db_v3_index.faiss"
+DOCS_PATH = output_path / "pi_db_v3_docs.csv"
+
+# --- Cargar modelo y FAISS solo 1 vez ---
+@st.cache_resource
+def load_semantic_index():
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    index = faiss.read_index(str(INDEX_PATH))
+    docs = pd.read_csv(DOCS_PATH)
+    return model, index, docs
+
+semantic_model, semantic_index, semantic_docs = load_semantic_index()
+
+# --- Chatbot UI ---
+st.markdown("---")
+st.markdown("### 🤖 Asistente Virtual (RAG Semántico)")
+st.info("Pregunta cualquier cosa: el asistente buscará en toda la base de datos y documentos usando embeddings locales.")
+
+if "rag_chat" not in st.session_state:
+    st.session_state.rag_chat = []
+
+for msg in st.session_state.rag_chat:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+
+query = st.chat_input("Pregunta aquí...")
+
+if query:
+    st.session_state.rag_chat.append({"role": "user", "content": query})
+
+    # --- Embed pregunta + búsqueda FAISS ---
+    q_emb = semantic_model.encode([query])
+    D, I = semantic_index.search(q_emb, k=5)
+
+    resultados = []
+    for idx in I[0]:
+        fila = semantic_docs.iloc[idx]
+        cod = fila["Codificación"]
+        titulo = fila.get("TítuloCompletoEspañol", "")
+        programa_fila = fila["Programa"]
+        texto = " ".join([str(fila[col]) for col in semantic_docs.columns])
+
+        folder_row = df_links[
+            (df_links["Codificación"] == cod) & (df_links["Programa"] == programa_fila)
+        ]
+        if not folder_row.empty:
+            folder_id = folder_row.iloc[0]["FolderID"]
+            link_drive = f"[📂 Carpeta de {cod}](https://drive.google.com/drive/folders/{folder_id})"
+        else:
+            link_drive = "⚠️ Carpeta no encontrada"
+
+        resultado = f"## 📘 {programa_fila} — {cod} — {titulo}\n\n{texto[:500]}...\n\n{link_drive}"
+        resultados.append(resultado)
+
+    respuesta = "### 🔎 Resultados semánticos:\n\n" + "\n\n---\n\n".join(resultados)
+    st.session_state.rag_chat.append({"role": "assistant", "content": respuesta})
+    register_log(st.session_state["username"], f"chatbot_semantic_query: {query}")
