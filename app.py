@@ -119,10 +119,7 @@ def update_course_field(sheet_id, cod, column_name, new_value):
                 col_index = list(headers).index(column_name) + 1
                 sheet.update_cell(row_num, col_index, new_value)
 
-                # Obtener hora actual en AST
                 pr_time = datetime.now(pytz.timezone("America/Puerto_Rico")).strftime("%Y-%m-%d %H:%M:%S")
-
-                # Actualizar columnas de seguimiento
                 mod_col = list(headers).index("ÚltimaModificaciónPor") + 1
                 date_col = list(headers).index("FechaÚltimaModificación") + 1
                 sheet.update_cell(row_num, mod_col, st.session_state["username"])
@@ -132,6 +129,7 @@ def update_course_field(sheet_id, cod, column_name, new_value):
                 break
     except Exception as e:
         st.warning(f"⚠️ No se pudo actualizar el curso: {e}")
+
 
 # ---- LOGIN ----
 if "logged_in" not in st.session_state:
