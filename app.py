@@ -355,10 +355,13 @@ st.markdown("#### Asistente Virtual (RAG Semántico)")
 if "rag_chat" not in st.session_state:
     st.session_state.rag_chat = []
 
-def responder_pregunta_con_razonamiento(query, df, programa):
-    q = query.lower()
+def normalizar(texto):
+    return unicodedata.normalize("NFKD", texto).encode("ASCII", "ignore").decode("utf-8").lower()
 
-    if "créditos" in q and "total" in q:
+def responder_pregunta_con_razonamiento(query, df, programa):
+    q = normalizar(query)
+
+    if "creditos" in q and "total" in q:
         total = df["Créditos"].sum()
         return f"🔢 El total de créditos en **{programa}** es: **{total}**."
 
@@ -366,15 +369,16 @@ def responder_pregunta_con_razonamiento(query, df, programa):
         activos = df[df["Estatus"] == 1].shape[0]
         return f"📘 Hay **{activos} cursos activos** en el programa **{programa}**."
 
-    elif "promedio de créditos" in q:
+    elif "promedio" in q and "creditos" in q:
         promedio = df["Créditos"].mean()
         return f"📊 El promedio de créditos por curso en **{programa}** es: **{promedio:.2f}**."
 
-    elif "primer año" in q and "cursos" in q:
+    elif "primer ano" in q and "cursos" in q:
         count = df[df["Año"] == 1].shape[0]
         return f"📚 Hay **{count} cursos** de primer año en **{programa}**."
 
     return None
+
 
 query = st.chat_input("Pregunta aquí...")
 
