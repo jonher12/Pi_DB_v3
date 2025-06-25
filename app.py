@@ -355,27 +355,28 @@ st.markdown("#### Asistente Virtual (RAG Semántico)")
 if "rag_chat" not in st.session_state:
     st.session_state.rag_chat = []
 
-def responder_pregunta_con_razonamiento(query, df, programa):
+ddef responder_pregunta_con_razonamiento(query, df, programa):
     q = query.lower()
 
-    if "cr\u00e9ditos" in q and "total" in q:
-        total = df[df["Programa"] == programa]["Cr\u00e9ditos"].sum()
-        return f"\ud83d\udcc2 El total de cr\u00e9ditos en **{programa}** es: **{total}**."
+    if "créditos" in q and "total" in q:
+        total = df["Créditos"].sum()
+        return f"🔢 El total de créditos en **{programa}** es: **{total}**."
 
     elif "cursos activos" in q:
-        activos = df[(df["Programa"] == programa) & (df["Estatus"] == 1)].shape[0]
-        return f"\ud83d\udcd8 Hay **{activos} cursos activos** en el programa **{programa}**."
+        activos = df[df["Estatus"] == 1].shape[0]
+        return f"📘 Hay **{activos} cursos activos** en el programa **{programa}**."
 
-    elif "promedio de cr\u00e9ditos" in q:
-        promedio = df[df["Programa"] == programa]["Cr\u00e9ditos"].mean()
-        return f"\ud83d\udcca El promedio de cr\u00e9ditos por curso en **{programa}** es: **{promedio:.2f}**."
+    elif "promedio de créditos" in q:
+        promedio = df["Créditos"].mean()
+        return f"📊 El promedio de créditos por curso en **{programa}** es: **{promedio:.2f}**."
 
-    elif "primer a\u00f1o" in q and "cursos" in q:
-        count = df[(df["Programa"] == programa) & (df["A\u00f1o"] == 1)].shape[0]
-        return f"\ud83d\udcda Hay **{count} cursos** de primer a\u00f1o en **{programa}**."
+    elif "primer año" in q and "cursos" in q:
+        count = df[df["Año"] == 1].shape[0]
+        return f"📚 Hay **{count} cursos** de primer año en **{programa}**."
 
     else:
-        return None
+        return None  # No es una pregunta que podamos responder con lógica tabular
+
 
 query = st.chat_input("Pregunta aqu\u00ed...", key="chat_input_semantico")
 
