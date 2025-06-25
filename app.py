@@ -350,7 +350,7 @@ with col2:
 
 # === RAG SEM\u00c1NTICO ===
 st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
-st.markdown("#### \ud83e\udd16 Asistente Virtual (RAG Sem\u00e1ntico)")
+st.markdown("#### Asistente Virtual (RAG Semántico)")
 
 if "rag_chat" not in st.session_state:
     st.session_state.rag_chat = []
