@@ -414,9 +414,15 @@ if query:
         register_log(st.session_state["username"], f"chatbot_semantic_query: {query}")
 
 # 🔄 Mostrar mensajes del chat
+import unicodedata
+
+def sanitize_text(text):
+    return unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
+
 for msg in st.session_state.rag_chat:
     with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+        st.markdown(sanitize_text(msg["content"]))
+
         
 # Pie de página
 st.markdown("---")
