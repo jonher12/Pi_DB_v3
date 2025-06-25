@@ -355,7 +355,7 @@ st.markdown("#### Asistente Virtual (RAG Semántico)")
 if "rag_chat" not in st.session_state:
     st.session_state.rag_chat = []
 
-ddef responder_pregunta_con_razonamiento(query, df, programa):
+def responder_pregunta_con_razonamiento(query, df, programa):
     q = query.lower()
 
     if "créditos" in q and "total" in q:
