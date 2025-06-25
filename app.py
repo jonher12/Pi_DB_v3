@@ -11,7 +11,7 @@ from sentence_transformers import SentenceTransformer
 import faiss
 from pathlib import Path
 
-st.set_page_config(page_title="📘 Pi DB v3", layout="wide")
+st.set_page_config(page_title="\ud83d\udcd8 Pi DB v3", layout="wide")
 
 # === PATHS para embeddings ===
 BASE_DIR = Path(__file__).parent
@@ -40,6 +40,7 @@ FOLDER_LINKS = {
 DRIVE_LINK_SHEET_ID = st.secrets["DRIVE_LINK_SHEET_ID"].strip()
 USERS_SHEET_ID = st.secrets["USERS_SHEET_ID"].strip()
 LOG_SHEET_ID = st.secrets["LOG_SHEET_ID"].strip()
+
 
 # 🔐 Funciones
 def hash_password(password):
@@ -347,42 +348,36 @@ with col2:
     if comentarios != curso["Comentarios"]:
         update_course_field(SHEET_IDS[programa], curso["Codificación"], "Comentarios", comentarios)
 
-# === RAG SEMÁNTICO ===
-st.markdown("---")
-st.markdown("### 🤖 Asistente Virtual (RAG Semántico)")
+# === RAG SEM\u00c1NTICO ===
+st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
+st.markdown("#### \ud83e\udd16 Asistente Virtual (RAG Sem\u00e1ntico)")
 
 if "rag_chat" not in st.session_state:
     st.session_state.rag_chat = []
 
-for msg in st.session_state.rag_chat:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
-
-query = st.chat_input("Pregunta aquí...")
-
 def responder_pregunta_con_razonamiento(query, df, programa):
     q = query.lower()
 
-    if "créditos" in q and "total" in q:
-        total = df[df["Programa"] == programa]["Créditos"].sum()
-        return f"🔢 El total de créditos en **{programa}** es: **{total}**."
+    if "cr\u00e9ditos" in q and "total" in q:
+        total = df[df["Programa"] == programa]["Cr\u00e9ditos"].sum()
+        return f"\ud83d\udcc2 El total de cr\u00e9ditos en **{programa}** es: **{total}**."
 
     elif "cursos activos" in q:
         activos = df[(df["Programa"] == programa) & (df["Estatus"] == 1)].shape[0]
-        return f"📘 Hay **{activos} cursos activos** en el programa **{programa}**."
+        return f"\ud83d\udcd8 Hay **{activos} cursos activos** en el programa **{programa}**."
 
-    elif "promedio de créditos" in q:
-        promedio = df[df["Programa"] == programa]["Créditos"].mean()
-        return f"📊 El promedio de créditos por curso en **{programa}** es: **{promedio:.2f}**."
+    elif "promedio de cr\u00e9ditos" in q:
+        promedio = df[df["Programa"] == programa]["Cr\u00e9ditos"].mean()
+        return f"\ud83d\udcca El promedio de cr\u00e9ditos por curso en **{programa}** es: **{promedio:.2f}**."
 
-    elif "primer año" in q and "cursos" in q:
-        count = df[(df["Programa"] == programa) & (df["Año"] == 1)].shape[0]
-        return f"📚 Hay **{count} cursos** de primer año en **{programa}**."
+    elif "primer a\u00f1o" in q and "cursos" in q:
+        count = df[(df["Programa"] == programa) & (df["A\u00f1o"] == 1)].shape[0]
+        return f"\ud83d\udcda Hay **{count} cursos** de primer a\u00f1o en **{programa}**."
 
     else:
-        return None  # No es una pregunta que podamos responder con lógica tabular
+        return None
 
-query = st.chat_input("Pregunta aquí...", key="chat_input_semantico")
+query = st.chat_input("Pregunta aqu\u00ed...", key="chat_input_semantico")
 
 if query:
     st.session_state.rag_chat.append({"role": "user", "content": query})
@@ -393,34 +388,36 @@ if query:
         st.session_state.rag_chat.append({"role": "assistant", "content": respuesta_tabular})
         register_log(st.session_state["username"], f"chatbot_tabular_query: {query}")
     else:
-        # 🔁 Búsqueda semántica (RAG)
         q_emb = semantic_model.encode([query])
         D, I = semantic_index.search(q_emb, k=5)
 
         resultados = []
         for idx in I[0]:
             fila = semantic_docs.iloc[idx]
-            cod = fila["Codificación"]
-            titulo = fila.get("TítuloCompletoEspañol", "")
+            cod = fila["Codificaci\u00f3n"]
+            titulo = fila.get("T\u00edtuloCompletoEspa\u00f1ol", "")
             programa_fila = fila["Programa"]
             texto = " ".join([str(fila[col]) for col in semantic_docs.columns])
 
-            folder_row = df_links[(df_links["Codificación"] == cod) & (df_links["Programa"] == programa_fila)]
+            folder_row = df_links[(df_links["Codificaci\u00f3n"] == cod) & (df_links["Programa"] == programa_fila)]
             if not folder_row.empty:
                 folder_id = folder_row.iloc[0]["FolderID"]
-                link_drive = f"[📂 Carpeta de {cod}](https://drive.google.com/drive/folders/{folder_id})"
+                link_drive = f"[\ud83d\udcc2 Carpeta de {cod}](https://drive.google.com/drive/folders/{folder_id})"
             else:
-                link_drive = "⚠️ Carpeta no encontrada"
+                link_drive = "\u26a0\ufe0f Carpeta no encontrada"
 
-            resultado = f"## 📘 {programa_fila} — {cod} — {titulo}\n\n{texto[:500]}...\n\n{link_drive}"
+            resultado = f"## \ud83d\udcd8 {programa_fila} \u2014 {cod} \u2014 {titulo}\n\n{texto[:500]}...\n\n{link_drive}"
             resultados.append(resultado)
 
-        respuesta = "### 🔎 Resultados semánticos:\n\n" + "\n\n---\n\n".join(resultados)
+        respuesta = "### \ud83d\udd0e Resultados sem\u00e1nticos:\n\n" + "\n\n---\n\n".join(resultados)
         st.session_state.rag_chat.append({"role": "assistant", "content": respuesta})
         register_log(st.session_state["username"], f"chatbot_semantic_query: {query}")
 
-
-
+# 🔄 Mostrar mensajes del chat
+for msg in st.session_state.rag_chat:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+        
 # Pie de página
 st.markdown("---")
 st.caption("División de Evaluación de la Efectividad Curricular e Institucional. Todos los derechos reservados. JHA 2025©. Administrador: Jonathan Hernández-Agosto, EdD, GCG.")
