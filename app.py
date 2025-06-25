@@ -401,10 +401,10 @@ if query:
             texto = " ".join([str(fila[col]) for col in semantic_docs.columns])
 
             folder_row = df_links[(df_links["Codificaci\u00f3n"] == cod) & (df_links["Programa"] == programa_fila)]
-            if not folder_row.empty:
+    if not folder_row.empty:
                 folder_id = folder_row.iloc[0]["FolderID"]
                 link_drive = f"[\ud83d\udcc2 Carpeta de {cod}](https://drive.google.com/drive/folders/{folder_id})"
-            else:
+    else:
                 link_drive = "\u26a0\ufe0f Carpeta no encontrada"
 
             resultado = f"## \ud83d\udcd8 {programa_fila} \u2014 {cod} \u2014 {titulo}\n\n{texto[:500]}...\n\n{link_drive}"
