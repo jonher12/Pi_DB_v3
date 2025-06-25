@@ -348,7 +348,7 @@ with col2:
     if comentarios != curso["Comentarios"]:
         update_course_field(SHEET_IDS[programa], curso["Codificación"], "Comentarios", comentarios)
 
-# === RAG SEM\u00c1NTICO ===
+# === RAG SEMÁNTICO ===
 st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
 st.markdown("#### Asistente Virtual (RAG Semántico)")
 
@@ -375,46 +375,42 @@ def responder_pregunta_con_razonamiento(query, df, programa):
         return f"📚 Hay **{count} cursos** de primer año en **{programa}**."
 
     else:
-        return None  # No es una pregunta que podamos responder con lógica tabular
-
+        return None
 
 query = st.chat_input("Pregunta aquí...")
 
 if query:
     st.session_state.rag_chat.append({"role": "user", "content": query})
-
-    # Intentar razonamiento directo
-    respuesta = responder_pregunta_con_razonamiento(query, df, programa_actual)
+    respuesta = responder_pregunta_con_razonamiento(query, df, programa)
 
     if respuesta:
         st.session_state.rag_chat.append({"role": "assistant", "content": respuesta})
         st.markdown("#### 🤖 Respuesta basada en razonamiento tabular:")
         st.markdown(respuesta)
     else:
-        resultados = buscar_similares(query, vectorstore)
-        mostrar_resultados(resultados)
-
+        resultados = []
+        top_indices = list(range(min(3, len(semantic_docs))))  # ejemplo para probar sin vectorstore
+        for idx in top_indices:
             fila = semantic_docs.iloc[idx]
-            cod = fila["Codificaci\u00f3n"]
-            titulo = fila.get("T\u00edtuloCompletoEspa\u00f1ol", "")
+            cod = fila["Codificación"]
+            titulo = fila.get("TítuloCompletoEspañol", "")
             programa_fila = fila["Programa"]
             texto = " ".join([str(fila[col]) for col in semantic_docs.columns])
 
-            folder_row = df_links[(df_links["Codificaci\u00f3n"] == cod) & (df_links["Programa"] == programa_fila)]
-    if not folder_row.empty:
+            folder_row = df_links[(df_links["Codificación"] == cod) & (df_links["Programa"] == programa_fila)]
+            if not folder_row.empty:
                 folder_id = folder_row.iloc[0]["FolderID"]
-                link_drive = f"[\ud83d\udcc2 Carpeta de {cod}](https://drive.google.com/drive/folders/{folder_id})"
-    else:
-                link_drive = "\u26a0\ufe0f Carpeta no encontrada"
+                link_drive = f"[📂 Carpeta de {cod}](https://drive.google.com/drive/folders/{folder_id})"
+            else:
+                link_drive = "⚠️ Carpeta no encontrada"
 
-            resultado = f"## \ud83d\udcd8 {programa_fila} \u2014 {cod} \u2014 {titulo}\n\n{texto[:500]}...\n\n{link_drive}"
+            resultado = f"## 📘 {programa_fila} — {cod} — {titulo}\n\n{texto[:500]}...\n\n{link_drive}"
             resultados.append(resultado)
 
-        respuesta = "### \ud83d\udd0e Resultados sem\u00e1nticos:\n\n" + "\n\n---\n\n".join(resultados)
+        respuesta = "### 🔍 Resultados semánticos:\n\n" + "\n\n---\n\n".join(resultados)
         st.session_state.rag_chat.append({"role": "assistant", "content": respuesta})
         register_log(st.session_state["username"], f"chatbot_semantic_query: {query}")
 
-# 🔄 Mostrar mensajes del chat
 import unicodedata
 
 def sanitize_text(text):
