@@ -362,32 +362,65 @@ for msg in st.session_state.rag_chat:
 
 query = st.chat_input("Pregunta aquí...")
 
+def responder_pregunta_con_razonamiento(query, df, programa):
+    q = query.lower()
+
+    if "créditos" in q and "total" in q:
+        total = df[df["Programa"] == programa]["Créditos"].sum()
+        return f"🔢 El total de créditos en **{programa}** es: **{total}**."
+
+    elif "cursos activos" in q:
+        activos = df[(df["Programa"] == programa) & (df["Estatus"] == 1)].shape[0]
+        return f"📘 Hay **{activos} cursos activos** en el programa **{programa}**."
+
+    elif "promedio de créditos" in q:
+        promedio = df[df["Programa"] == programa]["Créditos"].mean()
+        return f"📊 El promedio de créditos por curso en **{programa}** es: **{promedio:.2f}**."
+
+    elif "primer año" in q and "cursos" in q:
+        count = df[(df["Programa"] == programa) & (df["Año"] == 1)].shape[0]
+        return f"📚 Hay **{count} cursos** de primer año en **{programa}**."
+
+    else:
+        return None  # No es una pregunta que podamos responder con lógica tabular
+
+query = st.chat_input("Pregunta aquí...")
+
 if query:
     st.session_state.rag_chat.append({"role": "user", "content": query})
-    q_emb = semantic_model.encode([query])
-    D, I = semantic_index.search(q_emb, k=5)
 
-    resultados = []
-    for idx in I[0]:
-        fila = semantic_docs.iloc[idx]
-        cod = fila["Codificación"]
-        titulo = fila.get("TítuloCompletoEspañol", "")
-        programa_fila = fila["Programa"]
-        texto = " ".join([str(fila[col]) for col in semantic_docs.columns])
+    respuesta_tabular = responder_pregunta_con_razonamiento(query, df, programa)
 
-        folder_row = df_links[(df_links["Codificación"] == cod) & (df_links["Programa"] == programa_fila)]
-        if not folder_row.empty:
-            folder_id = folder_row.iloc[0]["FolderID"]
-            link_drive = f"[📂 Carpeta de {cod}](https://drive.google.com/drive/folders/{folder_id})"
-        else:
-            link_drive = "⚠️ Carpeta no encontrada"
+    if respuesta_tabular:
+        st.session_state.rag_chat.append({"role": "assistant", "content": respuesta_tabular})
+        register_log(st.session_state["username"], f"chatbot_tabular_query: {query}")
+    else:
+        # 🔁 Búsqueda semántica (RAG)
+        q_emb = semantic_model.encode([query])
+        D, I = semantic_index.search(q_emb, k=5)
 
-        resultado = f"## 📘 {programa_fila} — {cod} — {titulo}\n\n{texto[:500]}...\n\n{link_drive}"
-        resultados.append(resultado)
+        resultados = []
+        for idx in I[0]:
+            fila = semantic_docs.iloc[idx]
+            cod = fila["Codificación"]
+            titulo = fila.get("TítuloCompletoEspañol", "")
+            programa_fila = fila["Programa"]
+            texto = " ".join([str(fila[col]) for col in semantic_docs.columns])
 
-    respuesta = "### 🔎 Resultados semánticos:\n\n" + "\n\n---\n\n".join(resultados)
-    st.session_state.rag_chat.append({"role": "assistant", "content": respuesta})
-    register_log(st.session_state["username"], f"chatbot_semantic_query: {query}")
+            folder_row = df_links[(df_links["Codificación"] == cod) & (df_links["Programa"] == programa_fila)]
+            if not folder_row.empty:
+                folder_id = folder_row.iloc[0]["FolderID"]
+                link_drive = f"[📂 Carpeta de {cod}](https://drive.google.com/drive/folders/{folder_id})"
+            else:
+                link_drive = "⚠️ Carpeta no encontrada"
+
+            resultado = f"## 📘 {programa_fila} — {cod} — {titulo}\n\n{texto[:500]}...\n\n{link_drive}"
+            resultados.append(resultado)
+
+        respuesta = "### 🔎 Resultados semánticos:\n\n" + "\n\n---\n\n".join(resultados)
+        st.session_state.rag_chat.append({"role": "assistant", "content": respuesta})
+        register_log(st.session_state["username"], f"chatbot_semantic_query: {query}")
+
 
 
 # Pie de página
