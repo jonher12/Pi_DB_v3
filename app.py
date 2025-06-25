@@ -7,8 +7,26 @@ import hashlib
 from datetime import datetime
 import pytz
 import unicodedata
+from sentence_transformers import SentenceTransformer
+import faiss
+from pathlib import Path
 
 st.set_page_config(page_title="📘 Pi DB v3", layout="wide")
+
+# === PATHS para embeddings ===
+output_path = Path("G:/My Drive/Shiny_Pi")
+INDEX_PATH = output_path / "pi_db_v3_index.faiss"
+DOCS_PATH = output_path / "pi_db_v3_docs.csv"
+
+# === Cargar embeddings ===
+@st.cache_resource
+def load_semantic_index():
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    index = faiss.read_index(str(INDEX_PATH))
+    docs = pd.read_csv(DOCS_PATH)
+    return model, index, docs
+
+semantic_model, semantic_index, semantic_docs = load_semantic_index()
 
 # IDs de hojas desde secrets
 SHEET_IDS = {
