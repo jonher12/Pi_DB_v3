@@ -11,7 +11,7 @@ from sentence_transformers import SentenceTransformer
 import faiss
 from pathlib import Path
 
-st.set_page_config(page_title="\ud83d\udcd8 Pi DB v3", layout="wide")
+st.set_page_config(page_title="Pi DB v3", layout="wide")
 
 # === PATHS para embeddings ===
 BASE_DIR = Path(__file__).parent
