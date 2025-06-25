@@ -7,26 +7,8 @@ import hashlib
 from datetime import datetime
 import pytz
 import unicodedata
-from sentence_transformers import SentenceTransformer
-import faiss
-from pathlib import Path
 
-st.set_page_config(page_title="Pi DB v3", layout="wide")
-
-# === PATHS para embeddings ===
-BASE_DIR = Path(__file__).parent
-INDEX_PATH = BASE_DIR / "pi_db_v3_index.faiss"
-DOCS_PATH = BASE_DIR / "pi_db_v3_docs.csv"
-
-# === Cargar embeddings ===
-@st.cache_resource
-def load_semantic_index():
-    model = SentenceTransformer("all-MiniLM-L6-v2")
-    index = faiss.read_index(str(INDEX_PATH))
-    docs = pd.read_csv(DOCS_PATH)
-    return model, index, docs
-
-semantic_model, semantic_index, semantic_docs = load_semantic_index()
+st.set_page_config(page_title="📘 Pi DB v3", layout="wide")
 
 # IDs de hojas desde secrets
 SHEET_IDS = {
@@ -40,7 +22,6 @@ FOLDER_LINKS = {
 DRIVE_LINK_SHEET_ID = st.secrets["DRIVE_LINK_SHEET_ID"].strip()
 USERS_SHEET_ID = st.secrets["USERS_SHEET_ID"].strip()
 LOG_SHEET_ID = st.secrets["LOG_SHEET_ID"].strip()
-
 
 # 🔐 Funciones
 def hash_password(password):
@@ -120,7 +101,10 @@ def update_course_field(sheet_id, cod, column_name, new_value):
                 col_index = list(headers).index(column_name) + 1
                 sheet.update_cell(row_num, col_index, new_value)
 
+                # Obtener hora actual en AST
                 pr_time = datetime.now(pytz.timezone("America/Puerto_Rico")).strftime("%Y-%m-%d %H:%M:%S")
+
+                # Actualizar columnas de seguimiento
                 mod_col = list(headers).index("ÚltimaModificaciónPor") + 1
                 date_col = list(headers).index("FechaÚltimaModificación") + 1
                 sheet.update_cell(row_num, mod_col, st.session_state["username"])
@@ -130,7 +114,6 @@ def update_course_field(sheet_id, cod, column_name, new_value):
                 break
     except Exception as e:
         st.warning(f"⚠️ No se pudo actualizar el curso: {e}")
-
 
 # ---- LOGIN ----
 if "logged_in" not in st.session_state:
@@ -348,64 +331,6 @@ with col2:
     if comentarios != curso["Comentarios"]:
         update_course_field(SHEET_IDS[programa], curso["Codificación"], "Comentarios", comentarios)
 
-# === RAG SEMÁNTICO ===
-st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
-st.markdown("#### Asistente Virtual (RAG Semántico)")
-
-if "rag_chat" not in st.session_state:
-    st.session_state.rag_chat = []
-
-def normalizar(texto):
-    return unicodedata.normalize("NFKD", texto).encode("ASCII", "ignore").decode("utf-8").lower()
-
-def responder_pregunta_con_razonamiento(query, df, programa):
-    q = normalizar(query)
-
-    if "creditos" in q and "total" in q:
-        total = df["Créditos"].sum()
-        return f"🔢 El total de créditos en **{programa}** es: **{total}**."
-
-    elif "cursos activos" in q:
-        activos = df[df["Estatus"] == 1].shape[0]
-        return f"📘 Hay **{activos} cursos activos** en el programa **{programa}**."
-
-    elif "promedio" in q and "creditos" in q:
-        promedio = df["Créditos"].mean()
-        return f"📊 El promedio de créditos por curso en **{programa}** es: **{promedio:.2f}**."
-
-    elif "primer ano" in q and "cursos" in q:
-        count = df[df["Año"] == 1].shape[0]
-        return f"📚 Hay **{count} cursos** de primer año en **{programa}**."
-
-    return None
-
-
-query = st.chat_input("Pregunta aquí...")
-
-if query:
-    st.session_state.rag_chat.append({"role": "user", "content": query})
-
-    respuesta = responder_pregunta_con_razonamiento(query, df, programa)
-
-    if respuesta:
-        st.session_state.rag_chat.append({"role": "assistant", "content": respuesta})
-        st.markdown("#### 🤖 Respuesta basada en razonamiento tabular:")
-        st.markdown(respuesta)
-    else:
-        # Aquí puedes insertar tu motor semántico o búsqueda por embeddings si no hay razonamiento directo.
-        st.warning("🔎 No se pudo encontrar una respuesta tabular. El motor semántico aún no está integrado correctamente.")
-
-# Mostrar conversación
-def sanitize_text(text):
-    import unicodedata
-    return unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
-
-for msg in st.session_state.rag_chat:
-    with st.chat_message(msg["role"]):
-        st.markdown(sanitize_text(msg["content"]))
-
-
-        
 # Pie de página
 st.markdown("---")
 st.caption("División de Evaluación de la Efectividad Curricular e Institucional. Todos los derechos reservados. JHA 2025©. Administrador: Jonathan Hernández-Agosto, EdD, GCG.")
