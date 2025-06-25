@@ -378,22 +378,22 @@ def responder_pregunta_con_razonamiento(query, df, programa):
         return None  # No es una pregunta que podamos responder con lógica tabular
 
 
-query = st.chat_input("Pregunta aqu\u00ed...", key="chat_input_semantico")
+query = st.chat_input("Pregunta aquí...")
 
 if query:
     st.session_state.rag_chat.append({"role": "user", "content": query})
 
-    respuesta_tabular = responder_pregunta_con_razonamiento(query, df, programa)
+    # Intentar razonamiento directo
+    respuesta = responder_pregunta_con_razonamiento(query, df, programa_actual)
 
-    if respuesta_tabular:
-        st.session_state.rag_chat.append({"role": "assistant", "content": respuesta_tabular})
-        register_log(st.session_state["username"], f"chatbot_tabular_query: {query}")
+    if respuesta:
+        st.session_state.rag_chat.append({"role": "assistant", "content": respuesta})
+        st.markdown("#### 🤖 Respuesta basada en razonamiento tabular:")
+        st.markdown(respuesta)
     else:
-        q_emb = semantic_model.encode([query])
-        D, I = semantic_index.search(q_emb, k=5)
+        resultados = buscar_similares(query, vectorstore)
+        mostrar_resultados(resultados)
 
-        resultados = []
-        for idx in I[0]:
             fila = semantic_docs.iloc[idx]
             cod = fila["Codificaci\u00f3n"]
             titulo = fila.get("T\u00edtuloCompletoEspa\u00f1ol", "")
