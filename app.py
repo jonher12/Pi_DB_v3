@@ -374,13 +374,13 @@ def responder_pregunta_con_razonamiento(query, df, programa):
         count = df[df["Año"] == 1].shape[0]
         return f"📚 Hay **{count} cursos** de primer año en **{programa}**."
 
-    else:
-        return None
+    return None
 
 query = st.chat_input("Pregunta aquí...")
 
 if query:
     st.session_state.rag_chat.append({"role": "user", "content": query})
+
     respuesta = responder_pregunta_con_razonamiento(query, df, programa)
 
     if respuesta:
@@ -388,37 +388,18 @@ if query:
         st.markdown("#### 🤖 Respuesta basada en razonamiento tabular:")
         st.markdown(respuesta)
     else:
-        resultados = []
-        top_indices = list(range(min(3, len(semantic_docs))))  # ejemplo para probar sin vectorstore
-        for idx in top_indices:
-            fila = semantic_docs.iloc[idx]
-            cod = fila["Codificación"]
-            titulo = fila.get("TítuloCompletoEspañol", "")
-            programa_fila = fila["Programa"]
-            texto = " ".join([str(fila[col]) for col in semantic_docs.columns])
+        # Aquí puedes insertar tu motor semántico o búsqueda por embeddings si no hay razonamiento directo.
+        st.warning("🔎 No se pudo encontrar una respuesta tabular. El motor semántico aún no está integrado correctamente.")
 
-            folder_row = df_links[(df_links["Codificación"] == cod) & (df_links["Programa"] == programa_fila)]
-            if not folder_row.empty:
-                folder_id = folder_row.iloc[0]["FolderID"]
-                link_drive = f"[📂 Carpeta de {cod}](https://drive.google.com/drive/folders/{folder_id})"
-            else:
-                link_drive = "⚠️ Carpeta no encontrada"
-
-            resultado = f"## 📘 {programa_fila} — {cod} — {titulo}\n\n{texto[:500]}...\n\n{link_drive}"
-            resultados.append(resultado)
-
-        respuesta = "### 🔍 Resultados semánticos:\n\n" + "\n\n---\n\n".join(resultados)
-        st.session_state.rag_chat.append({"role": "assistant", "content": respuesta})
-        register_log(st.session_state["username"], f"chatbot_semantic_query: {query}")
-
-import unicodedata
-
+# Mostrar conversación
 def sanitize_text(text):
+    import unicodedata
     return unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
 
 for msg in st.session_state.rag_chat:
     with st.chat_message(msg["role"]):
         st.markdown(sanitize_text(msg["content"]))
+
 
         
 # Pie de página
