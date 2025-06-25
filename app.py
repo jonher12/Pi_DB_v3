@@ -384,7 +384,7 @@ def responder_pregunta_con_razonamiento(query, df, programa):
     else:
         return None  # No es una pregunta que podamos responder con lógica tabular
 
-query = st.chat_input("Pregunta aquí...")
+query = st.chat_input("Pregunta aquí...", key="chat_input_semantico")
 
 if query:
     st.session_state.rag_chat.append({"role": "user", "content": query})
