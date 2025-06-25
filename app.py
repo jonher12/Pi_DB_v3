@@ -14,9 +14,9 @@ from pathlib import Path
 st.set_page_config(page_title="📘 Pi DB v3", layout="wide")
 
 # === PATHS para embeddings ===
-output_path = Path("G:/My Drive/Shiny_Pi")
-INDEX_PATH = output_path / "pi_db_v3_index.faiss"
-DOCS_PATH = output_path / "pi_db_v3_docs.csv"
+BASE_DIR = Path(__file__).parent
+INDEX_PATH = BASE_DIR / "pi_db_v3_index.faiss"
+DOCS_PATH = BASE_DIR / "pi_db_v3_docs.csv"
 
 # === Cargar embeddings ===
 @st.cache_resource
