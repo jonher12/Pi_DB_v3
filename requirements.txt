@@ -16,3 +16,4 @@ unstructured
 google-api-python-client
 huggingface-hub
 python-docx
+huggingface-hub
