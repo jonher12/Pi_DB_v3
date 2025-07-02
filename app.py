@@ -385,9 +385,9 @@ db = FAISS.from_documents(documentos, embeddings)
 
 # 🤖 LLM gratuito
 llm = HuggingFaceEndpoint(
-    repo_id="google/flan-t5-small",
+    repo_id="tiiuae/falcon-rw-1b",
     temperature=0.3,
-    max_length=256,
+    max_length=512,
     huggingfacehub_api_token=st.secrets["HUGGINGFACEHUB_API_TOKEN"]
 )
 
