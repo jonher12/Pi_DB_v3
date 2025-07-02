@@ -316,7 +316,7 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
 from langchain.chains import RetrievalQA
-from langchain_community.llms import HuggingFaceEndpoint
+from langchain_community.llms import HuggingFaceHub
 from langchain_community.document_loaders import PyMuPDFLoader, UnstructuredWordDocumentLoader
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
@@ -381,12 +381,12 @@ embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-
 db = FAISS.from_documents(documentos, embeddings)
 
 # 🤖 Modelo LLM gratuito con Hosted Inference API
-llm = HuggingFaceEndpoint(
+llm = HuggingFaceHub(
     repo_id="mistralai/Mistral-7B-Instruct-v0.1",
-    temperature=0.3,
-    max_length=512,
+    model_kwargs={"temperature": 0.3, "max_new_tokens": 512},
     huggingfacehub_api_token=st.secrets["HUGGINGFACEHUB_API_TOKEN"]
 )
+
 
 # 🔗 QA chain
 qa = RetrievalQA.from_chain_type(
