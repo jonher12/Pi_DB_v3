@@ -316,7 +316,7 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
 from langchain.chains import RetrievalQA
-from langchain_community.llms import HuggingFaceHub
+from langchain_community.llms import HuggingFaceEndpoint
 from langchain_community.document_loaders import PyMuPDFLoader, UnstructuredWordDocumentLoader
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
@@ -384,9 +384,10 @@ embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-
 db = FAISS.from_documents(documentos, embeddings)
 
 # 🤖 LLM gratuito
-llm = HuggingFaceHub(
+llm = HuggingFaceEndpoint(
     repo_id="google/flan-t5-small",
-    model_kwargs={"temperature": 0.3, "max_length": 256},
+    temperature=0.3,
+    max_length=256,
     huggingfacehub_api_token=st.secrets["HUGGINGFACEHUB_API_TOKEN"]
 )
 
