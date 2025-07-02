@@ -312,37 +312,51 @@ with col1:
     st.markdown("Haz una pregunta sobre este curso. El asistente responderá con base en la descripción, comentarios o documentos disponibles.")
 
 # ------------------------------ CHATBOT ------------------------------
-
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
+from langchain_core.documents import Document
 from langchain.chains import RetrievalQA
 from langchain_community.llms import HuggingFaceHub
+import os
 
-# Crear embeddings con modelo gratuito de HuggingFace
+# Ruta del índice por código del curso
+cod_curso = curso["Codificación"].lower()
+index_path = f"/mnt/data/index_faiss_{cod_curso}"  # ej: index_faiss_farm7101
+
+# Crear embeddings gratuitos
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-# Crear vectorstore FAISS desde los documentos cargados
-db = FAISS.from_documents(documentos, embeddings)
+# Cargar índice FAISS si existe, sino crear
+if os.path.exists(index_path + ".faiss") and os.path.exists(index_path + ".json"):
+    db = FAISS.load_local(index_path, embeddings, allow_dangerous_deserialization=True)
+else:
+    textos_base = [curso.get("Descripción", ""), curso.get("Comentarios", "")]
+    documentos = [Document(page_content=txt) for txt in textos_base if txt.strip()]
+    
+    # Puedes añadir aquí otros documentos de Drive si los tienes
+    db = FAISS.from_documents(documentos, embeddings)
+    db.save_local(index_path)
 
-# Configurar LLM gratuito desde HuggingFaceHub
+# LLM gratuito desde Hugging Face Hub
 llm = HuggingFaceHub(
-    repo_id="google/flan-t5-small",  # Puedes usar "tiiuae/falcon-7b-instruct" si quieres uno más potente
+    repo_id="google/flan-t5-small",
     model_kwargs={"temperature": 0.3, "max_length": 256},
     huggingfacehub_api_token=st.secrets["HUGGINGFACEHUB_API_TOKEN"]
 )
 
-# Cadena de recuperación tipo QA
+# QA chain
 qa = RetrievalQA.from_chain_type(
     llm=llm,
     retriever=db.as_retriever(),
     return_source_documents=False
 )
 
-# Entrada del usuario y respuesta
-user_input = st.text_input("❓ Haz una pregunta sobre este curso o sus documentos:")
+# Interfaz de chatbot
+st.markdown("### 🤖 Asistente del Curso")
+user_input = st.text_input("❓ Escribe tu pregunta sobre el curso o sus documentos:")
 if user_input:
     respuesta = qa.run(user_input)
-    st.markdown(f"💬 **Asistente:** {respuesta}")
+    st.success(f"💬 {respuesta}")
 
 with col2:
     st.markdown("### 📝 Descripción del Curso")
