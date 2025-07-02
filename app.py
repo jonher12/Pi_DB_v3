@@ -323,7 +323,7 @@ from googleapiclient.http import MediaIoBaseDownload
 from google.oauth2.service_account import Credentials
 import io, os
 
-# 📁 Función para cargar archivos de Google Drive
+# 🔄 Función para cargar documentos del folder de Drive
 def cargar_documentos_drive(folder_id):
     try:
         creds = Credentials.from_service_account_info(
@@ -339,8 +339,6 @@ def cargar_documentos_drive(folder_id):
         for f in files:
             file_id = f["id"]
             file_name = f["name"]
-            mime_type = f["mimeType"]
-
             if not (file_name.endswith(".pdf") or file_name.endswith(".docx")):
                 continue
 
@@ -348,7 +346,6 @@ def cargar_documentos_drive(folder_id):
             file_path = f"/tmp/{file_name}"
             fh = io.FileIO(file_path, "wb")
             downloader = MediaIoBaseDownload(fh, request)
-
             done = False
             while not done:
                 status, done = downloader.next_chunk()
@@ -364,34 +361,34 @@ def cargar_documentos_drive(folder_id):
         return documentos
 
     except Exception as e:
-        st.error(f"❌ Error cargando archivos desde Drive: {e}")
+        st.warning(f"⚠️ Error al cargar documentos del curso: {e}")
         return []
 
-# 🧠 Crear documento con TODOS los campos de la tabla del curso
+# 🧠 Convertir toda la fila del curso en texto
 texto_contexto = "\n".join(
     f"{col}: {str(curso[col])}" for col in curso.index if str(curso[col]).strip() != ""
 )
 documentos = [Document(page_content=texto_contexto)]
 
-# 📁 Añadir documentos del folder del curso si existe
+# 📁 Agregar archivos desde Google Drive (si existen)
 folder_row = df_links[(df_links["Codificación"] == curso['Codificación']) & (df_links["Programa"] == programa)]
 if not folder_row.empty:
     folder_id = folder_row.iloc[0]["FolderID"]
     documentos += cargar_documentos_drive(folder_id)
 
-# 🔎 Embeddings gratuitos
+# 🔎 Vectorización
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 db = FAISS.from_documents(documentos, embeddings)
 
-# 🤖 LLM gratuito
+# 🤖 Modelo LLM gratuito con Hosted Inference API
 llm = HuggingFaceEndpoint(
-    repo_id="tiiuae/falcon-rw-1b",
+    repo_id="mistralai/Mistral-7B-Instruct-v0.1",
     temperature=0.3,
     max_length=512,
     huggingfacehub_api_token=st.secrets["HUGGINGFACEHUB_API_TOKEN"]
 )
 
-# 🔁 Cadena de QA
+# 🔗 QA chain
 qa = RetrievalQA.from_chain_type(
     llm=llm,
     retriever=db.as_retriever(),
@@ -400,10 +397,11 @@ qa = RetrievalQA.from_chain_type(
 
 # 💬 Interfaz del chatbot
 st.markdown("### 🤖 Asistente del Curso")
-user_input = st.text_input("❓ Pregunta sobre el curso, su prontuario o documentos:")
+user_input = st.text_input("❓ Haz una pregunta sobre este curso o sus documentos:")
 if user_input:
     respuesta = qa.run(user_input)
     st.success(f"💬 {respuesta}")
+
 
 with col2:
     st.markdown("### 📝 Descripción del Curso")
