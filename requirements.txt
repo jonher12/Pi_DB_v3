@@ -14,3 +14,4 @@ tiktoken
 PyMuPDF
 unstructured
 google-api-python-client
+huggingface-hub
