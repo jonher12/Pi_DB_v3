@@ -314,7 +314,7 @@ with col1:
 # ------------------------------ CHATBOT ------------------------------
 
 from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.document_loaders import PyMuPDFLoader, UnstructuredWordDocumentLoader
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQA
@@ -372,7 +372,7 @@ if not folder_row.empty:
 
 # Si hay contenido, activamos el chatbot
 if documentos:
-    embeddings = OpenAIEmbeddings(openai_api_key=st.secrets["OPENAI_API_KEY"])
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     db = FAISS.from_documents(documentos, embeddings)
     qa = RetrievalQA.from_chain_type(
         llm=ChatOpenAI(temperature=0.3, openai_api_key=st.secrets["OPENAI_API_KEY"]),
