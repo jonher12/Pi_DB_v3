@@ -382,11 +382,10 @@ embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-
 db = FAISS.from_documents(documentos, embeddings)
 
 # 🤖 Modelo LLM gratuito con Hosted Inference API
-llm = HuggingFaceEndpoint(
-    repo_id="tiiuae/falcon-7b-instruct",
-    task="text-generation",
+llm = HuggingFaceHub(
+    repo_id="google/flan-t5-xl",
     huggingfacehub_api_token=st.secrets["HUGGINGFACEHUB_API_TOKEN"],
-    model_kwargs={"temperature": 0.3, "max_new_tokens": 512}
+    model_kwargs={"temperature": 0.3, "max_length": 512}
 )
 
 # 🔗 QA chain
