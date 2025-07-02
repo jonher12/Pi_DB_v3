@@ -313,79 +313,36 @@ with col1:
 
 # ------------------------------ CHATBOT ------------------------------
 
-from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.document_loaders import PyMuPDFLoader, UnstructuredWordDocumentLoader
-from langchain_community.chat_models import ChatOllama
+from langchain_community.vectorstores import FAISS
 from langchain.chains import RetrievalQA
-from langchain_core.documents import Document
-from googleapiclient.discovery import build
-import os
+from langchain_community.llms import HuggingFaceHub
 
-def cargar_documentos_drive(folder_id):
-    try:
-        creds = Credentials.from_service_account_info(
-            st.secrets["google_service_account"],
-            scopes=["https://www.googleapis.com/auth/drive"]
-        )
-        service = build("drive", "v3", credentials=creds)
-        query = f"'{folder_id}' in parents and trashed = false"
-        results = service.files().list(q=query, fields="files(id, name, mimeType)").execute()
-        files = results.get("files", [])
+# Crear embeddings con modelo gratuito de HuggingFace
+embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-        documentos = []
-        for f in files:
-            file_id = f["id"]
-            file_name = f["name"]
-            request = service.files().get_media(fileId=file_id)
-            file_path = f"/tmp/{file_name}"
-            with open(file_path, "wb") as fh:
-                downloader = service._http.request(request.uri)
-                fh.write(downloader[1])
+# Crear vectorstore FAISS desde los documentos cargados
+db = FAISS.from_documents(documentos, embeddings)
 
-            if file_name.endswith(".pdf"):
-                loader = PyMuPDFLoader(file_path)
-                documentos.extend(loader.load())
-            elif file_name.endswith(".docx"):
-                loader = UnstructuredWordDocumentLoader(file_path)
-                documentos.extend(loader.load())
-            os.remove(file_path)
-        return documentos
-    except Exception as e:
-        st.warning(f"⚠️ Error al cargar documentos desde Drive: {e}")
-        return []
+# Configurar LLM gratuito desde HuggingFaceHub
+llm = HuggingFaceHub(
+    repo_id="google/flan-t5-small",  # Puedes usar "tiiuae/falcon-7b-instruct" si quieres uno más potente
+    model_kwargs={"temperature": 0.3, "max_length": 256},
+    huggingfacehub_api_token=st.secrets["HUGGINGFACEHUB_API_TOKEN"]
+)
 
-# Asistente del curso
-st.markdown("### 🤖 Asistente del Curso")
-st.markdown("Haz una pregunta sobre este curso. El asistente responderá con base en la descripción, comentarios o documentos disponibles.")
+# Cadena de recuperación tipo QA
+qa = RetrievalQA.from_chain_type(
+    llm=llm,
+    retriever=db.as_retriever(),
+    return_source_documents=False
+)
 
-documentos = []
-
-# Descripción y comentarios del curso
-textos_base = [curso.get("Descripción", ""), curso.get("Comentarios", "")]
-documentos += [Document(page_content=txt) for txt in textos_base if txt.strip()]
-
-# Documentos del folder
-if not folder_row.empty:
-    folder_id = folder_row.iloc[0]["FolderID"]
-    documentos += cargar_documentos_drive(folder_id)
-
-# Si hay contenido, activamos el chatbot
-if documentos:
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    db = FAISS.from_documents(documentos, embeddings)
-    qa = RetrievalQA.from_chain_type(
-        llm=ChatOpenAI(temperature=0.3, openai_api_key=st.secrets["OPENAI_API_KEY"]),
-        retriever=db.as_retriever(),
-        return_source_documents=False
-    )
-
-    pregunta_usuario = st.text_input("❓ Tu pregunta al asistente:", key="pregunta_chatbot")
-    if pregunta_usuario:
-        respuesta = qa.run(pregunta_usuario)
-        st.success(f"🧠 Respuesta: {respuesta}")
-else:
-    st.info("No hay contenido disponible para responder preguntas.")
+# Entrada del usuario y respuesta
+user_input = st.text_input("❓ Haz una pregunta sobre este curso o sus documentos:")
+if user_input:
+    respuesta = qa.run(user_input)
+    st.markdown(f"💬 **Asistente:** {respuesta}")
 
 with col2:
     st.markdown("### 📝 Descripción del Curso")
