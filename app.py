@@ -317,43 +317,89 @@ from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
 from langchain.chains import RetrievalQA
 from langchain_community.llms import HuggingFaceHub
-import os
+from langchain_community.document_loaders import PyMuPDFLoader, UnstructuredWordDocumentLoader
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseDownload
+from google.oauth2.service_account import Credentials
+import io, os
 
-# Ruta del índice por código del curso
-cod_curso = curso["Codificación"].lower()
-index_path = f"/mnt/data/index_faiss_{cod_curso}"  # ej: index_faiss_farm7101
+# 📁 Función para cargar archivos de Google Drive
+def cargar_documentos_drive(folder_id):
+    try:
+        creds = Credentials.from_service_account_info(
+            st.secrets["google_service_account"],
+            scopes=["https://www.googleapis.com/auth/drive"]
+        )
+        service = build("drive", "v3", credentials=creds)
+        query = f"'{folder_id}' in parents and trashed = false"
+        results = service.files().list(q=query, fields="files(id, name, mimeType)").execute()
+        files = results.get("files", [])
+        documentos = []
 
-# Crear embeddings gratuitos
+        for f in files:
+            file_id = f["id"]
+            file_name = f["name"]
+            mime_type = f["mimeType"]
+
+            if not (file_name.endswith(".pdf") or file_name.endswith(".docx")):
+                continue
+
+            request = service.files().get_media(fileId=file_id)
+            file_path = f"/tmp/{file_name}"
+            fh = io.FileIO(file_path, "wb")
+            downloader = MediaIoBaseDownload(fh, request)
+
+            done = False
+            while not done:
+                status, done = downloader.next_chunk()
+
+            if file_name.endswith(".pdf"):
+                loader = PyMuPDFLoader(file_path)
+            elif file_name.endswith(".docx"):
+                loader = UnstructuredWordDocumentLoader(file_path)
+
+            documentos += loader.load()
+            os.remove(file_path)
+
+        return documentos
+
+    except Exception as e:
+        st.error(f"❌ Error cargando archivos desde Drive: {e}")
+        return []
+
+# 🧠 Crear documento con TODOS los campos de la tabla del curso
+texto_contexto = "\n".join(
+    f"{col}: {str(curso[col])}" for col in curso.index if str(curso[col]).strip() != ""
+)
+documentos = [Document(page_content=texto_contexto)]
+
+# 📁 Añadir documentos del folder del curso si existe
+folder_row = df_links[(df_links["Codificación"] == curso['Codificación']) & (df_links["Programa"] == programa)]
+if not folder_row.empty:
+    folder_id = folder_row.iloc[0]["FolderID"]
+    documentos += cargar_documentos_drive(folder_id)
+
+# 🔎 Embeddings gratuitos
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+db = FAISS.from_documents(documentos, embeddings)
 
-# Cargar índice FAISS si existe, sino crear
-if os.path.exists(index_path + ".faiss") and os.path.exists(index_path + ".json"):
-    db = FAISS.load_local(index_path, embeddings, allow_dangerous_deserialization=True)
-else:
-    textos_base = [curso.get("Descripción", ""), curso.get("Comentarios", "")]
-    documentos = [Document(page_content=txt) for txt in textos_base if txt.strip()]
-    
-    # Puedes añadir aquí otros documentos de Drive si los tienes
-    db = FAISS.from_documents(documentos, embeddings)
-    db.save_local(index_path)
-
-# LLM gratuito desde Hugging Face Hub
+# 🤖 LLM gratuito
 llm = HuggingFaceHub(
     repo_id="google/flan-t5-small",
     model_kwargs={"temperature": 0.3, "max_length": 256},
     huggingfacehub_api_token=st.secrets["HUGGINGFACEHUB_API_TOKEN"]
 )
 
-# QA chain
+# 🔁 Cadena de QA
 qa = RetrievalQA.from_chain_type(
     llm=llm,
     retriever=db.as_retriever(),
     return_source_documents=False
 )
 
-# Interfaz de chatbot
+# 💬 Interfaz del chatbot
 st.markdown("### 🤖 Asistente del Curso")
-user_input = st.text_input("❓ Escribe tu pregunta sobre el curso o sus documentos:")
+user_input = st.text_input("❓ Pregunta sobre el curso, su prontuario o documentos:")
 if user_input:
     respuesta = qa.run(user_input)
     st.success(f"💬 {respuesta}")
