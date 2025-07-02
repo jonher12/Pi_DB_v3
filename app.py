@@ -382,17 +382,19 @@ db = FAISS.from_documents(documentos, embeddings)
 
 # 🤖 Modelo LLM gratuito con Hosted Inference API
 llm = HuggingFaceHub(
-    repo_id="mistralai/Mistral-7B-Instruct-v0.1",
-    model_kwargs={"temperature": 0.3, "max_new_tokens": 512},
+    repo_id="tiiuae/falcon-7b-instruct",  # o prueba flan-t5-xl
+    model_kwargs={
+        "temperature": 0.3,
+        "max_new_tokens": 512
+    },
     huggingfacehub_api_token=st.secrets["HUGGINGFACEHUB_API_TOKEN"]
 )
-
 
 # 🔗 QA chain
 qa = RetrievalQA.from_chain_type(
     llm=llm,
     retriever=db.as_retriever(),
-    return_source_documents=False
+    return_source_documents=False  # o True si quieres referencias
 )
 
 # 💬 Interfaz del chatbot
