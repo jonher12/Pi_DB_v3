@@ -6,9 +6,11 @@ oauth2client>=4.1
 google-auth
 sentence-transformers
 faiss-cpu
-langchain>=0.1.0
+langchain>=0.1.13
+langchain-community>=0.0.18
+langchain-core>=0.1.13
 openai>=1.3.0
+tiktoken
 PyMuPDF
 unstructured
 google-api-python-client
-langchain-community>=0.0.18
