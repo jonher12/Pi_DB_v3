@@ -311,69 +311,81 @@ with col1:
     st.markdown("### 🤖 Asistente del Curso")
     st.markdown("Haz una pregunta sobre este curso. El asistente responderá con base en la descripción, comentarios o documentos disponibles.")
 
+# ------------------------------ CHATBOT ------------------------------
+
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.document_loaders import PyMuPDFLoader, UnstructuredWordDocumentLoader
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQA
 from langchain_core.documents import Document
+from googleapiclient.discovery import build
+import os
 
-    def cargar_documentos_drive(folder_id):
-        try:
-            creds = Credentials.from_service_account_info(
-                st.secrets["google_service_account"],
-                scopes=["https://www.googleapis.com/auth/drive"]
-            )
-            service = build("drive", "v3", credentials=creds)
-            query = f"'{folder_id}' in parents and trashed = false"
-            results = service.files().list(q=query, fields="files(id, name, mimeType)").execute()
-            files = results.get("files", [])
-
-            documentos = []
-            for f in files:
-                file_id = f["id"]
-                file_name = f["name"]
-                request = service.files().get_media(fileId=file_id)
-                file_path = f"/tmp/{file_name}"
-                with open(file_path, "wb") as fh:
-                    downloader = service._http.request(request.uri)
-                    fh.write(downloader[1])
-
-                if file_name.endswith(".pdf"):
-                    loader = PyMuPDFLoader(file_path)
-                    documentos.extend(loader.load())
-                elif file_name.endswith(".docx"):
-                    loader = UnstructuredWordDocumentLoader(file_path)
-                    documentos.extend(loader.load())
-                os.remove(file_path)
-            return documentos
-        except Exception as e:
-            st.warning(f"⚠️ Error al cargar documentos desde Drive: {e}")
-            return []
-
-    documentos = []
-    textos_base = [curso.get("Descripción", ""), curso.get("Comentarios", "")]
-    documentos.extend([Document(page_content=txt) for txt in textos_base if txt.strip()])
-
-    if not folder_row.empty:
-        folder_id = folder_row.iloc[0]["FolderID"]
-        documentos += cargar_documentos_drive(folder_id)
-
-    if documentos:
-        embeddings = OpenAIEmbeddings(openai_api_key=st.secrets["OPENAI_API_KEY"])
-        db = FAISS.from_documents(documentos, embeddings)
-        qa = RetrievalQA.from_chain_type(
-            llm=ChatOpenAI(temperature=0.3, openai_api_key=st.secrets["OPENAI_API_KEY"]),
-            retriever=db.as_retriever(),
-            return_source_documents=False
+def cargar_documentos_drive(folder_id):
+    try:
+        creds = Credentials.from_service_account_info(
+            st.secrets["google_service_account"],
+            scopes=["https://www.googleapis.com/auth/drive"]
         )
+        service = build("drive", "v3", credentials=creds)
+        query = f"'{folder_id}' in parents and trashed = false"
+        results = service.files().list(q=query, fields="files(id, name, mimeType)").execute()
+        files = results.get("files", [])
 
-        pregunta_usuario = st.text_input("❓ Tu pregunta al asistente:", key="pregunta_chatbot")
-        if pregunta_usuario:
-            respuesta = qa.run(pregunta_usuario)
-            st.success(f"🧠 Respuesta: {respuesta}")
-    else:
-        st.info("No hay contenido disponible para responder preguntas.")
+        documentos = []
+        for f in files:
+            file_id = f["id"]
+            file_name = f["name"]
+            request = service.files().get_media(fileId=file_id)
+            file_path = f"/tmp/{file_name}"
+            with open(file_path, "wb") as fh:
+                downloader = service._http.request(request.uri)
+                fh.write(downloader[1])
+
+            if file_name.endswith(".pdf"):
+                loader = PyMuPDFLoader(file_path)
+                documentos.extend(loader.load())
+            elif file_name.endswith(".docx"):
+                loader = UnstructuredWordDocumentLoader(file_path)
+                documentos.extend(loader.load())
+            os.remove(file_path)
+        return documentos
+    except Exception as e:
+        st.warning(f"⚠️ Error al cargar documentos desde Drive: {e}")
+        return []
+
+# Asistente del curso
+st.markdown("### 🤖 Asistente del Curso")
+st.markdown("Haz una pregunta sobre este curso. El asistente responderá con base en la descripción, comentarios o documentos disponibles.")
+
+documentos = []
+
+# Descripción y comentarios del curso
+textos_base = [curso.get("Descripción", ""), curso.get("Comentarios", "")]
+documentos += [Document(page_content=txt) for txt in textos_base if txt.strip()]
+
+# Documentos del folder
+if not folder_row.empty:
+    folder_id = folder_row.iloc[0]["FolderID"]
+    documentos += cargar_documentos_drive(folder_id)
+
+# Si hay contenido, activamos el chatbot
+if documentos:
+    embeddings = OpenAIEmbeddings(openai_api_key=st.secrets["OPENAI_API_KEY"])
+    db = FAISS.from_documents(documentos, embeddings)
+    qa = RetrievalQA.from_chain_type(
+        llm=ChatOpenAI(temperature=0.3, openai_api_key=st.secrets["OPENAI_API_KEY"]),
+        retriever=db.as_retriever(),
+        return_source_documents=False
+    )
+
+    pregunta_usuario = st.text_input("❓ Tu pregunta al asistente:", key="pregunta_chatbot")
+    if pregunta_usuario:
+        respuesta = qa.run(pregunta_usuario)
+        st.success(f"🧠 Respuesta: {respuesta}")
+else:
+    st.info("No hay contenido disponible para responder preguntas.")
 
 with col2:
     st.markdown("### 📝 Descripción del Curso")
