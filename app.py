@@ -317,6 +317,7 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_community.llms import HuggingFaceInferenceAPI
 from langchain_core.documents import Document
+from langchain_community.llms import HuggingFaceHub
 
 def get_chatbot(curso, documentos_adicionales=None, k=3):
     """
@@ -354,9 +355,10 @@ def get_chatbot(curso, documentos_adicionales=None, k=3):
     retriever = db.as_retriever(search_kwargs={"k": k})
 
     # 🤖 LLM gratuito desde HuggingFace Hosted Inference API
-    llm = HuggingFaceInferenceAPI(
-        model_name="declare-lab/flan-alpaca-base",
-        api_key=st.secrets["HUGGINGFACEHUB_API_TOKEN"]
+    llm = HuggingFaceHub(
+        repo_id="google/flan-t5-xl",
+        huggingfacehub_api_token=st.secrets["HUGGINGFACEHUB_API_TOKEN"],
+        model_kwargs={"temperature": 0.3, "max_length": 512}
     )
 
     # 🔗 Cadena QA
