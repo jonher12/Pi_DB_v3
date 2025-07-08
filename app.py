@@ -312,88 +312,72 @@ with col1:
     st.markdown("Haz una pregunta sobre este curso. El asistente responderá con base en la descripción, comentarios o documentos disponibles.")
 
 # ------------------------------ CHATBOT ------------------------------
+from langchain.chains import RetrievalQA
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain_core.documents import Document
-from langchain.chains import RetrievalQA
 from langchain_community.llms import HuggingFaceHub
-from langchain_community.llms import HuggingFaceEndpoint
-from langchain_community.document_loaders import PyMuPDFLoader, UnstructuredWordDocumentLoader
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseDownload
-from google.oauth2.service_account import Credentials
-import io, os
+from langchain_core.documents import Document
 
-# 🔄 Función para cargar documentos del folder de Drive
-def cargar_documentos_drive(folder_id):
-    try:
-        creds = Credentials.from_service_account_info(
-            st.secrets["google_service_account"],
-            scopes=["https://www.googleapis.com/auth/drive"]
-        )
-        service = build("drive", "v3", credentials=creds)
-        query = f"'{folder_id}' in parents and trashed = false"
-        results = service.files().list(q=query, fields="files(id, name, mimeType)").execute()
-        files = results.get("files", [])
-        documentos = []
+def get_chatbot(curso, documentos_adicionales=None, k=3):
+    """
+    Crea un chatbot basado en una fila de curso y documentos adicionales (PDF/DOCX).
+    
+    Args:
+        curso (pd.Series): Fila del DataFrame con datos del curso seleccionado.
+        documentos_adicionales (list): Lista de Document() de LangChain desde PDF/DOCX.
+        k (int): Número de documentos relevantes a recuperar para cada pregunta.
 
-        for f in files:
-            file_id = f["id"]
-            file_name = f["name"]
-            if not (file_name.endswith(".pdf") or file_name.endswith(".docx")):
-                continue
+    Returns:
+        qa (RetrievalQA): Objeto listo para ejecutar .run(pregunta).
+    """
+    # 🧠 Crear contexto con información del curso
+    texto_contexto = f"""
+    Título del curso: {curso['TítuloCompletoEspañol']}
+    Código: {curso['Codificación']}
+    Descripción: {curso['Descripción']}
+    Comentarios: {curso['Comentarios']}
+    Prerrequisitos: {curso['CursosPrerrequisitos']}
+    Correquisitos: {curso['CursosCorrequisitos']}
+    Créditos: {curso['Créditos']}
+    Horas contacto: {curso['HorasContacto']}
+    Fecha de revisión: {curso['FechaUltimaRevisión']}
+    """
+    documentos = [Document(page_content=texto_contexto)]
 
-            request = service.files().get_media(fileId=file_id)
-            file_path = f"/tmp/{file_name}"
-            fh = io.FileIO(file_path, "wb")
-            downloader = MediaIoBaseDownload(fh, request)
-            done = False
-            while not done:
-                status, done = downloader.next_chunk()
+    # 📁 Agregar documentos externos si existen
+    if documentos_adicionales:
+        documentos += documentos_adicionales
 
-            if file_name.endswith(".pdf"):
-                loader = PyMuPDFLoader(file_path)
-            elif file_name.endswith(".docx"):
-                loader = UnstructuredWordDocumentLoader(file_path)
+    # 🔎 Vectorización
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    db = FAISS.from_documents(documentos, embeddings)
+    retriever = db.as_retriever(search_kwargs={"k": k})
 
-            documentos += loader.load()
-            os.remove(file_path)
+    # 🤖 LLM gratuito desde HuggingFaceHub
+    llm = HuggingFaceHub(
+        repo_id="declare-lab/flan-alpaca-base",
+        huggingfacehub_api_token=st.secrets["HUGGINGFACEHUB_API_TOKEN"],
+        model_kwargs={"temperature": 0.2, "max_length": 512}
+    )
 
-        return documentos
+    # 🔗 Cadena QA
+    qa = RetrievalQA.from_chain_type(
+        llm=llm,
+        retriever=retriever,
+        return_source_documents=False
+    )
 
-    except Exception as e:
-        st.warning(f"⚠️ Error al cargar documentos del curso: {e}")
-        return []
-
-# 🧠 Convertir toda la fila del curso en texto
-texto_contexto = "\n".join(
-    f"{col}: {str(curso[col])}" for col in curso.index if str(curso[col]).strip() != ""
-)
-documentos = [Document(page_content=texto_contexto)]
-
-# 📁 Agregar archivos desde Google Drive (si existen)
+    return qa
+# Obtener documentos adicionales (PDF/DOCX)
 folder_row = df_links[(df_links["Codificación"] == curso['Codificación']) & (df_links["Programa"] == programa)]
+documentos_drive = []
 if not folder_row.empty:
     folder_id = folder_row.iloc[0]["FolderID"]
-    documentos += cargar_documentos_drive(folder_id)
+    documentos_drive = cargar_documentos_drive(folder_id)
 
-# 🔎 Vectorización
-embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-db = FAISS.from_documents(documentos, embeddings)
+# Crear el chatbot
+qa = get_chatbot(curso, documentos_adicionales=documentos_drive)
 
-# 🤖 Modelo LLM gratuito con Hosted Inference API
-llm = HuggingFaceHub(
-    repo_id="google/flan-t5-xl",
-    huggingfacehub_api_token=st.secrets["HUGGINGFACEHUB_API_TOKEN"],
-    model_kwargs={"temperature": 0.3, "max_length": 512}
-)
-
-# 🔗 QA chain
-qa = RetrievalQA.from_chain_type(
-    llm=llm,
-    retriever=db.as_retriever(),
-    return_source_documents=False  # o True si quieres referencias
-)
 
 # 💬 Interfaz del chatbot
 st.markdown("### 🤖 Asistente del Curso")
