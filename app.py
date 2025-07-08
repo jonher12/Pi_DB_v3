@@ -400,10 +400,10 @@ def get_chatbot(curso, documentos_adicionales=None, k=3):
 
 from langchain_community.llms import HuggingFaceInferenceAPI
 
-    llm = HuggingFaceInferenceAPI(
-        model_name="declare-lab/flan-alpaca-base",
-        api_key=st.secrets["HUGGINGFACEHUB_API_TOKEN"]
-    )
+llm = HuggingFaceInferenceAPI(
+    model_name="declare-lab/flan-alpaca-base",
+    api_key=st.secrets["HUGGINGFACEHUB_API_TOKEN"]
+)
 
     # 🔗 Cadena QA
     qa = RetrievalQA.from_chain_type(
