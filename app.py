@@ -315,7 +315,6 @@ with col1:
 from langchain.chains import RetrievalQA
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain_community.llms import HuggingFaceHub
 from langchain_core.documents import Document
 from langchain_community.document_loaders import PyMuPDFLoader, UnstructuredWordDocumentLoader
 from googleapiclient.discovery import build
@@ -399,11 +398,13 @@ def get_chatbot(curso, documentos_adicionales=None, k=3):
     db = FAISS.from_documents(documentos, embeddings)
     retriever = db.as_retriever(search_kwargs={"k": k})
 
-    # 🤖 LLM gratuito desde HuggingFaceHub
-    llm = HuggingFaceHub(
-        repo_id="declare-lab/flan-alpaca-base",
-        huggingfacehub_api_token=st.secrets["HUGGINGFACEHUB_API_TOKEN"],
-        model_kwargs={"temperature": 0.2, "max_length": 512}
+from langchain_community.llms import HuggingFaceInferenceAPI
+
+llm = HuggingFaceInferenceAPI(
+    model_name="declare-lab/flan-alpaca-base",
+    api_key=st.secrets["HUGGINGFACEHUB_API_TOKEN"]
+)
+
     )
 
     # 🔗 Cadena QA
