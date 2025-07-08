@@ -315,53 +315,8 @@ with col1:
 from langchain.chains import RetrievalQA
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
+from langchain_community.llms import HuggingFaceInferenceAPI
 from langchain_core.documents import Document
-from langchain_community.document_loaders import PyMuPDFLoader, UnstructuredWordDocumentLoader
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseDownload
-from google.oauth2.service_account import Credentials
-import io, os
-
-def cargar_documentos_drive(folder_id):
-    try:
-        creds = Credentials.from_service_account_info(
-            st.secrets["google_service_account"],
-            scopes=["https://www.googleapis.com/auth/drive"]
-        )
-        service = build("drive", "v3", credentials=creds)
-        query = f"'{folder_id}' in parents and trashed = false"
-        results = service.files().list(q=query, fields="files(id, name, mimeType)").execute()
-        files = results.get("files", [])
-        documentos = []
-
-        for f in files:
-            file_id = f["id"]
-            file_name = f["name"]
-            if not (file_name.endswith(".pdf") or file_name.endswith(".docx")):
-                continue
-
-            request = service.files().get_media(fileId=file_id)
-            file_path = f"/tmp/{file_name}"
-            fh = io.FileIO(file_path, "wb")
-            downloader = MediaIoBaseDownload(fh, request)
-            done = False
-            while not done:
-                status, done = downloader.next_chunk()
-
-            # Cargar según tipo de archivo
-            if file_name.endswith(".pdf"):
-                loader = PyMuPDFLoader(file_path)
-            elif file_name.endswith(".docx"):
-                loader = UnstructuredWordDocumentLoader(file_path)
-
-            documentos += loader.load()
-            os.remove(file_path)
-
-        return documentos
-
-    except Exception as e:
-        st.warning(f"⚠️ Error al cargar documentos del curso: {e}")
-        return []
 
 def get_chatbot(curso, documentos_adicionales=None, k=3):
     """
@@ -398,12 +353,11 @@ def get_chatbot(curso, documentos_adicionales=None, k=3):
     db = FAISS.from_documents(documentos, embeddings)
     retriever = db.as_retriever(search_kwargs={"k": k})
 
-from langchain_community.llms import HuggingFaceInferenceAPI
-
-llm = HuggingFaceInferenceAPI(
-    model_name="declare-lab/flan-alpaca-base",
-    api_key=st.secrets["HUGGINGFACEHUB_API_TOKEN"]
-)
+    # 🤖 LLM gratuito desde HuggingFace Hosted Inference API
+    llm = HuggingFaceInferenceAPI(
+        model_name="declare-lab/flan-alpaca-base",
+        api_key=st.secrets["HUGGINGFACEHUB_API_TOKEN"]
+    )
 
     # 🔗 Cadena QA
     qa = RetrievalQA.from_chain_type(
@@ -414,12 +368,6 @@ llm = HuggingFaceInferenceAPI(
 
     return qa
 
-# Obtener documentos adicionales (PDF/DOCX)
-folder_row = df_links[(df_links["Codificación"] == curso['Codificación']) & (df_links["Programa"] == programa)]
-documentos_drive = []
-if not folder_row.empty:
-    folder_id = folder_row.iloc[0]["FolderID"]
-    documentos_drive = cargar_documentos_drive(folder_id)
 
 # Crear el chatbot
 qa = get_chatbot(curso, documentos_adicionales=documentos_drive)
