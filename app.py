@@ -315,9 +315,8 @@ with col1:
 from langchain.chains import RetrievalQA
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain_community.llms import HuggingFaceInferenceAPI
-from langchain_core.documents import Document
 from langchain_community.llms import HuggingFaceHub
+from langchain_core.documents import Document
 
 def get_chatbot(curso, documentos_adicionales=None, k=3):
     """
@@ -345,23 +344,19 @@ def get_chatbot(curso, documentos_adicionales=None, k=3):
     """
     documentos = [Document(page_content=texto_contexto)]
 
-    # 📁 Agregar documentos externos si existen
     if documentos_adicionales:
         documentos += documentos_adicionales
 
-    # 🔎 Vectorización
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     db = FAISS.from_documents(documentos, embeddings)
     retriever = db.as_retriever(search_kwargs={"k": k})
 
-    # 🤖 LLM gratuito desde HuggingFace Hosted Inference API
     llm = HuggingFaceHub(
         repo_id="google/flan-t5-xl",
         huggingfacehub_api_token=st.secrets["HUGGINGFACEHUB_API_TOKEN"],
         model_kwargs={"temperature": 0.3, "max_length": 512}
     )
 
-    # 🔗 Cadena QA
     qa = RetrievalQA.from_chain_type(
         llm=llm,
         retriever=retriever,
@@ -369,7 +364,6 @@ def get_chatbot(curso, documentos_adicionales=None, k=3):
     )
 
     return qa
-
 
 # Crear el chatbot
 qa = get_chatbot(curso, documentos_adicionales=documentos_drive)
